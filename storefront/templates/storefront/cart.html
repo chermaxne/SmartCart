@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Shopping Cart - AuroraMart{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 1rem;">
+    <h1 class="text-3xl font-bold mb-8">Shopping Cart</h1>
+
+    {% if cart_items %}
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+        <!-- Cart Items -->
+        <div>
+            {% for item in cart_items %}
+            <div class="card" style="padding: 1.5rem; margin-bottom: 1rem;">
+                <div style="display: grid; grid-template-columns: 120px 1fr auto; gap: 1.5rem; align-items: center;">
+                    <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}" style="width: 100%; border-radius: 0.5rem;">
+                    
+                    <div>
+                        <h3 class="font-semibold text-lg mb-2">
+                            <a href="{% url 'product_detail' item.product.sku %}" style="text-decoration: none; color: inherit;">
+                                {{ item.product.name }}
+                            </a>
+                        </h3>
+                        <p class="text-gray-600 mb-2">{{ item.product.category }}</p>
+                        <p class="text-primary font-bold text-xl">${{ item.product.price }}</p>
+                    </div>
+                    
+                    <div style="text-align: right;">
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label class="form-label">Quantity</label>
+                            <input 
+                                type="number" 
+                                value="{{ item.quantity }}" 
+                                min="1" 
+                                max="{{ item.product.stock }}"
+                                class="form-input" 
+                                style="width: 80px;"
+                                onchange="updateCartQuantity('{{ item.product.sku }}', this.value)"
+                            >
+                        </div>
+                        <p class="font-bold text-lg mb-2">Subtotal: ${{ item.subtotal }}</p>
+                        <button onclick="removeFromCart('{{ item.product.sku }}')" class="text-sm" style="color: #ef4444; text-decoration: underline;">
+                            Remove
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Order Summary -->
+        <div>
+            <div class="card" style="padding: 1.5rem; position: sticky; top: 80px;">
+                <h2 class="text-xl font-bold mb-4">Order Summary</h2>
+                
+                <div style="border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1rem;">
+                    <div class="flex justify-between mb-2">
+                        <span>Subtotal ({{ cart_items|length }} items)</span>
+                        <span>${{ subtotal }}</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span>Shipping</span>
+                        <span>{% if subtotal >= 50 %}FREE{% else %}$5.99{% endif %}</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span>Tax</span>
+                        <span>${{ tax }}</span>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between mb-4">
+                    <span class="font-bold text-lg">Total</span>
+                    <span class="font-bold text-2xl text-primary">${{ total }}</span>
+                </div>
+
+                <a href="{% url 'checkout' %}" class="btn btn-primary" style="width: 100%; text-align: center; padding: 1rem; font-size: 1.125rem;">
+                    Proceed to Checkout
+                </a>
+
+                <a href="{% url 'products' %}" class="btn btn-secondary" style="width: 100%; text-align: center; margin-top: 1rem;">
+                    Continue Shopping
+                </a>
+            </div>
+
+            <!-- Smart Recommendations -->
+            {% if recommended_products %}
+            <div class="card" style="padding: 1.5rem; margin-top: 1.5rem;">
+                <h3 class="font-semibold mb-3">Frequently Bought Together</h3>
+                {% for product in recommended_products %}
+                <div style="display: flex; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
+                    <img src="{{ product.image_url }}" alt="{{ product.name }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 0.5rem;">
+                    <div style="flex: 1;">
+                        <p class="font-semibold text-sm">{{ product.name }}</p>
+                        <p class="text-primary font-bold">${{ product.price }}</p>
+                    </div>
+                    <button onclick="addToCart('{{ product.sku }}')" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        Add
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="card" style="padding: 4rem; text-align: center;">
+        <div style="font-size: 4rem; margin-bottom: 1rem;">🛒</div>
+        <h2 class="text-2xl font-bold mb-4">Your cart is empty</h2>
+        <p class="text-gray-600 mb-6">Add some products to get started!</p>
+        <a href="{% url 'products' %}" class="btn btn-primary">
+            Start Shopping
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/main.js' %}"></script>
+{% endblock %}

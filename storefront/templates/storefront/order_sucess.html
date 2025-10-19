@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Order Confirmed - AuroraMart{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 4rem 1rem; text-align: center;">
+    <div class="card" style="max-width: 600px; margin: 0 auto; padding: 3rem;">
+        <div style="font-size: 4rem; color: #10b981; margin-bottom: 1rem;">✓</div>
+        <h1 class="text-3xl font-bold mb-4">Order Confirmed!</h1>
+        <p class="text-lg text-gray-600 mb-6">Thank you for your purchase. Your order has been successfully placed.</p>
+        
+        <div style="background: var(--muted); padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 2rem;">
+            <p class="text-sm text-gray-600 mb-2">Order Number</p>
+            <p class="text-2xl font-bold text-primary">{{ order.id }}</p>
+        </div>
+
+        <div style="text-align: left; margin-bottom: 2rem;">
+            <h3 class="font-semibold mb-3">Order Details</h3>
+            <div class="flex justify-between mb-2">
+                <span>Order Date:</span>
+                <span>{{ order.created_at|date:"M d, Y" }}</span>
+            </div>
+            <div class="flex justify-between mb-2">
+                <span>Total Amount:</span>
+                <span class="font-bold">${{ order.total }}</span>
+            </div>
+            <div class="flex justify-between mb-2">
+                <span>Status:</span>
+                <span class="stock-badge stock-in">{{ order.status|title }}</span>
+            </div>
+        </div>
+
+        <p class="text-gray-600 mb-6">A confirmation email has been sent to {{ user.email }}</p>
+
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="{% url 'account' %}" class="btn btn-primary">
+                View Order History
+            </a>
+            <a href="{% url 'products' %}" class="btn btn-secondary">
+                Continue Shopping
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

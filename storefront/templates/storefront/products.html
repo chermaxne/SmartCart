@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Products - AuroraMart{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 1rem;">
+    <h1 class="text-3xl font-bold mb-8">
+        {% if current_category %}
+            {{ current_category }} Products
+        {% elif search_query %}
+            Search Results for "{{ search_query }}"
+        {% else %}
+            All Products
+        {% endif %}
+    </h1>
+    
+    <div style="display: grid; grid-template-columns: 250px 1fr; gap: 2rem;">
+        <!-- Filter Sidebar -->
+        <aside class="filter-sidebar">
+            <form method="GET" id="filter-form">
+                <!-- Category Filter -->
+                <div class="filter-section">
+                    <h3 class="filter-title">Category</h3>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="radio" name="category" value="" {% if not current_category %}checked{% endif %} onchange="filterProducts()">
+                            <span>All Categories</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="radio" name="category" value="Electronics" {% if current_category == 'Electronics' %}checked{% endif %} onchange="filterProducts()">
+                            <span>Electronics</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="radio" name="category" value="Fashion" {% if current_category == 'Fashion' %}checked{% endif %} onchange="filterProducts()">
+                            <span>Fashion</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="radio" name="category" value="Home" {% if current_category == 'Home' %}checked{% endif %} onchange="filterProducts()">
+                            <span>Home & Kitchen</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="radio" name="category" value="Beauty" {% if current_category == 'Beauty' %}checked{% endif %} onchange="filterProducts()">
+                            <span>Beauty</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="radio" name="category" value="Sports" {% if current_category == 'Sports' %}checked{% endif %} onchange="filterProducts()">
+                            <span>Sports</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="radio" name="category" value="Books" {% if current_category == 'Books' %}checked{% endif %} onchange="filterProducts()">
+                            <span>Books</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Price Range -->
+                <div class="filter-section">
+                    <h3 class="filter-title">Price Range</h3>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="radio" name="price" value="" {% if not price_range %}checked{% endif %} onchange="filterProducts()">
+                            <span>All Prices</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="radio" name="price" value="0-50" {% if price_range == '0-50' %}checked{% endif %} onchange="filterProducts()">
+                            <span>Under $50</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="radio" name="price" value="50-100" {% if price_range == '50-100' %}checked{% endif %} onchange="filterProducts()">
+                            <span>$50 - $100</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="radio" name="price" value="100-200" {% if price_range == '100-200' %}checked{% endif %} onchange="filterProducts()">
+                            <span>$100 - $200</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="radio" name="price" value="200+" {% if price_range == '200+' %}checked{% endif %} onchange="filterProducts()">
+                            <span>$200+</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Rating Filter -->
+                <div class="filter-section">
+                    <h3 class="filter-title">Rating</h3>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="radio" name="rating" value="" {% if not min_rating %}checked{% endif %} onchange="filterProducts()">
+                            <span>All Ratings</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="radio" name="rating" value="4" {% if min_rating == '4' %}checked{% endif %} onchange="filterProducts()">
+                            <span>★★★★ & up</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="radio" name="rating" value="3" {% if min_rating == '3' %}checked{% endif %} onchange="filterProducts()">
+                            <span>★★★ & up</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Stock Status -->
+                <div class="filter-section">
+                    <h3 class="filter-title">Availability</h3>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="in_stock" value="1" {% if in_stock_only %}checked{% endif %} onchange="filterProducts()">
+                            <span>In Stock Only</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Sort -->
+                <div class="filter-section">
+                    <h3 class="filter-title">Sort By</h3>
+                    <select name="sort" class="form-select" onchange="filterProducts()">
+                        <option value="">Featured</option>
+                        <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Highest Rated</option>
+                        <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest</option>
+                    </select>
+                </div>
+            </form>
+        </aside>
+        
+        <!-- Product Grid -->
+        <div>
+            <div class="flex items-center justify-between mb-6">
+                <p class="text-gray-600">{{ products|length }} products found</p>
+            </div>
+
+            <div class="grid grid-cols-3" style="gap: 1.5rem;">
+                {% for product in products %}
+                <div class="card product-card">
+                    <a href="{% url 'product_detail' product.sku %}">
+                        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="card-image">
+                    </a>
+                    <div class="card-content">
+                        <div class="product-rating">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= product.rating %}
+                                    <span>★</span>
+                                {% else %}
+                                    <span style="color: #e5e7eb;">★</span>
+                                {% endif %}
+                            {% endfor %}
+                            <span class="text-gray-600">({{ product.reviews_count }})</span>
+                        </div>
+                        <h3 class="card-title">
+                            <a href="{% url 'product_detail' product.sku %}" style="text-decoration: none; color: inherit;">
+                                {{ product.name }}
+                            </a>
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-2">{{ product.category }}</p>
+                        <p class="card-price">${{ product.price }}</p>
+                        
+                        {% if product.stock > 0 %}
+                            {% if product.stock < 10 %}
+                                <span class="stock-badge stock-low">Only {{ product.stock }} left</span>
+                            {% else %}
+                                <span class="stock-badge stock-in">In Stock</span>
+                            {% endif %}
+                            <button onclick="addToCart('{{ product.sku }}')" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+                                Add to Cart
+                            </button>
+                        {% else %}
+                            <span class="stock-badge stock-out">Out of Stock</span>
+                            <button class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;" disabled>
+                                Unavailable
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div style="grid-column: 1 / -1; text-align: center; padding: 4rem;">
+                    <p class="text-gray-500 text-lg">No products found matching your criteria.</p>
+                    <a href="{% url 'products' %}" class="btn btn-primary" style="margin-top: 1rem;">View All Products</a>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <div class="flex items-center justify-center gap-2 mt-8">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}" class="btn btn-secondary">
+                    Previous
+                </a>
+                {% endif %}
+                
+                <span class="px-4 py-2">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}" class="btn btn-secondary">
+                    Next
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/main.js' %}"></script>
+{% endblock %}
