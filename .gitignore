@@ -205,3 +205,12 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+data/b2c_customers_100.csv
+data/b2c_products_500.csv
+data/b2c_products_500_transactions_50k.csv
+IS2108 - AY2526S1 - Pair Project.pdf
+model/association_rules_mining.ipynb
+model/b2c_customers_100.joblib
+model/b2c_products_500_transactions_50k.joblib
+asset/AuroraMart Logo.png
+model/decision_tree_classifier.ipynb
