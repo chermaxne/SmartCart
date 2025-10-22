@@ -1,0 +1,16 @@
+{% extends "adminpanel/base.html" %}
+{% block title %}Products{% endblock %}
+{% block content %}
+<h1>Products</h1>
+<a href="{% url 'adminpanel:product_add' %}">Add Product</a>
+<ul>
+  {% for product in products %}
+    <li>
+      {{ product.name }} - ${{ product.price }} - Stock: {{ product.stock }}
+      <a href="{% url 'adminpanel:product_edit' product.id %}">Edit</a>
+    </li>
+  {% empty %}
+    <li>No products found.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "adminpanel/base.html" %}
+{% block title %}Customers{% endblock %}
+{% block content %}
+<h1>Customers</h1>
+<ul>
+  {% for customer in customers %}
+    <li>{{ customer.user.username }} - Age: {{ customer.age }} - Gender: {{ customer.gender }}</li>
+  {% empty %}
+    <li>No customers found.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

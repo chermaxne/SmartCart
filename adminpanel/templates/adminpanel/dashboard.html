@@ -1,0 +1,15 @@
+{% extends "adminpanel/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Admin Dashboard</h1>
+
+<h2>Low Stock Products</h2>
+<ul>
+  {% for product in low_stock_products %}
+    <li>{{ product.name }} - Stock: {{ product.stock }}</li>
+  {% empty %}
+    <li>All products are sufficiently stocked.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

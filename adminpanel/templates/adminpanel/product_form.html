@@ -1,0 +1,11 @@
+{% extends "adminpanel/base.html" %}
+{% block title %}{% if form.instance.pk %}Edit Product{% else %}Add Product{% endif %}{% endblock %}
+{% block content %}
+<h1>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Product</h1>
+<form method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Save</button>
+</form>
+<a href="{% url 'adminpanel:product_list' %}">Back to Product List</a>
+{% endblock %}

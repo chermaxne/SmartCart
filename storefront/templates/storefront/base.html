@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Storefront{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <header>
+        <h1>SmartCart Store</h1>
+        <nav>
+            <a href="{% url 'storefront:home' %}">Home</a> |
+            <a href="{% url 'storefront:cart' %}">Cart</a> |
+            <a href="{% url 'storefront:checkout' %}">Checkout</a> |
+            <a href="{% url 'storefront:register' %}">Register</a>
+        </nav>
+    </header>
+    <hr>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    <footer>
+        <hr>
+        <p>&copy; 2025 SmartCart - Storefront</p>
+    </footer>
+</body>
+</html>

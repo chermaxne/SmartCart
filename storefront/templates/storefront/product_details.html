@@ -1,63 +1,10 @@
-{% extends 'storefront/base.html' %}
+{% extends "storefront/base.html" %}
 
-{% block title %}{{ product.name }} - AuroraMart{% endblock %}
+{% block title %}{{ product.name }}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'storefront:home' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'storefront:products' %}">Products</a></li>
-            <li class="breadcrumb-item active">{{ product.name }}</li>
-        </ol>
-    </nav>
-
-    <div class="row">
-        <!-- Product Image -->
-        <div class="col-md-5">
-            <div class="card">
-                <img src="{{ product.image_url|default:'https://via.placeholder.com/400' }}" 
-                     class="card-img-top" alt="{{ product.name }}">
-            </div>
-        </div>
-
-        <!-- Product Details -->
-        <div class="col-md-7">
-            <h1 class="mb-3">{{ product.name }}</h1>
-            
-            <div class="mb-3">
-                <span class="badge bg-secondary">{{ product.category.name }}</span>
-                {% if product.subcategory %}
-                <span class="badge bg-light text-dark">{{ product.subcategory }}</span>
-                {% endif %}
-            </div>
-
-            <div class="mb-3">
-                <span class="text-warning">
-                    {% for i in "12345" %}
-                        {% if forloop.counter <= product.rating %}
-                        <i class="fas fa-star"></i>
-                        {% else %}
-                        <i class="far fa-star"></i>
-                        {% endif %}
-                    {% endfor %}
-                </span>
-                <span class="text-muted">({{ product.rating }} / 5.0)</span>
-            </div>
-
-            <h2 class="text-primary mb-3">${{ product.price }}</h2>
-
-            <p class="mb-3">{{ product.description }}</p>
-
-            <div class="mb-3">
-                <strong>SKU:</strong> {{ product.sku }}<br>
-                <strong>Availability:</strong>
-                {% if product.is_in_stock %}
-                    <span class="badge bg-success">In Stock ({{ product.stock }} available)</span>
-                {% else %}
-                    <span class="badge bg-danger">Out of Stock</span>
-                {% endif %}
-            </div>
-
-            {% if product.is_in_stock %}
-            <form method="post" action="{% url 'storefront:add_to_
+<h1>{{ product.name }}</h1>
+<p>{{ product.description }}</p>
+<p>Price: ${{ product.price }}</p>
+<a href="{% url 'storefront:checkout' %}">Checkout</a>
+{% endblock %}

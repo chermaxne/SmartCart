@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}AuroraMart Admin{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="icon" href="{% static 'images/logo.png' %}">
+
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f8fafc;
+        }
+
+        .admin-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .admin-sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            padding: 0;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .admin-logo {
+            padding: 28px 24px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .admin-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .admin-logo-image {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #06b6d4, #a855f7);
+            padding: 2px;
+        }
+
+        .admin-logo-image img {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .admin-logo h1 {
+            color: #111827;
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.3px;
+        }
+
+        .admin-logo-subtitle {
+            color: #6b7280;
+            font-size: 12px;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .admin-nav-menu {
+            list-style: none;
+            padding: 20px 16px;
+            margin: 0;
+        }
+
+        .admin-nav-item {
+            margin-bottom: 6px;
+        }
+
+        .admin-nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 14px;
+            color: #6b7280;
+            text-decoration: none;
+            transition: all 0.2s;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .admin-nav-link:hover {
+            background: #f3f4f6;
+            color: #111827;
+        }
+
+        .admin-nav-link.active {
+            background: #f3f4f6;
+            color: #111827;
+            font-weight: 600;
+        }
+
+        .admin-nav-link i {
+            width: 20px;
+            margin-right: 12px;
+            font-size: 18px;
+        }
+
+        .admin-main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 0;
+            min-height: 100vh;
+            background: #f8fafc;
+        }
+
+        .admin-topbar {
+            background: white;
+            padding: 20px 32px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .admin-topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .sidebar-toggle {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #f3f4f6;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #6b7280;
+        }
+
+        .sidebar-toggle:hover {
+            background: #e5e7eb;
+        }
+
+        .admin-topbar h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+        }
+
+        .topbar-subtitle {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        .admin-user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-notification-icon {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            background: #f3f4f6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #6b7280;
+            border: none;
+        }
+
+        .admin-notification-icon:hover {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .admin-user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 6px 12px 6px 6px;
+            border-radius: 12px;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .admin-user-profile:hover {
+            background: #f3f4f6;
+        }
+
+        .admin-user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .admin-user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .admin-user-avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #06b6d4, #a855f7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .admin-user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .admin-user-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #111827;
+            line-height: 1.2;
+        }
+
+        .admin-user-role {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .admin-user-profile i {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .admin-content {
+            padding: 32px;
+        }
+
+        .admin-content-section {
+            background: white;
+            padding: 28px;
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 24px;
+        }
+
+        .admin-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .admin-section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+        }
+
+        .section-subtitle {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 400;
+            margin-top: 4px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #111827;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1f2937;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #111827;
+            border: 1px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .admin-sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .admin-main {
+                margin-left: 0;
+            }
+
+            .sidebar-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .admin-content {
+                padding: 20px;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="admin-wrapper">
+        <div class="admin-sidebar" id="sidebar">
+            <div class="admin-logo">
+                <div class="admin-logo-container">
+                    <div class="admin-logo-image">
+                        <img src="{% static 'images/logo.png' %}" alt="AuroraMart">
+                    </div>
+                    <div>
+                        <h1>Admin Panel</h1>
+                        <div class="admin-logo-subtitle">Management System</div>
+                    </div>
+                </div>
+            </div>
+            <ul class="admin-nav-menu">
+                <li class="admin-nav-item">
+                    <a href="{% url 'adminpanel:dashboard' %}" class="admin-nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="fas fa-th-large"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="admin-nav-item">
+                    <a href="{% url 'adminpanel:customer' %}" class="admin-nav-link {% if request.resolver_match.url_name == 'customer' %}active{% endif %}">
+                        <i class="fas fa-users"></i>
+                        <span>Customer List</span>
+                    </a>
+                </li>
+                <li class="admin-nav-item">
+                    <a href="{% url 'adminpanel:product_list' %}" class="admin-nav-link {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-box"></i>
+                        <span>Product Management</span>
+                    </a>
+                </li>
+                <li class="admin-nav-item">
+                    <a href="/admin/" class="admin-nav-link" target="_blank">
+                        <i class="fas fa-cog"></i>
+                        <span>Django Admin</span>
+                    </a>
+                </li>
+                <li class="admin-nav-item">
+                    <a href="{% url 'adminpanel:recommendation_list' %}" class="admin-nav-link {% if 'recommendation' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Recommendations</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="admin-main">
+            <div class="admin-topbar">
+                <div class="admin-topbar-left">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div>
+                        <h2>{% block page_title %}Dashboard{% endblock %}</h2>
+                        {% block page_subtitle %}<div class="topbar-subtitle">{% endblock %}{% block page_subtitle_end %}</div>{% endblock %}
+                    </div>
+                </div>
+                <div class="admin-user-menu">
+                    <button class="admin-notification-icon">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <div class="admin-user-profile">
+                        <div class="admin-user-avatar">
+                            <div class="admin-user-avatar-placeholder">
+                                {{ user.username|slice:":2"|upper|default:"JD" }}
+                            </div>
+                        </div>
+                        <div class="admin-user-info">
+                            <div class="admin-user-name">{{ user.username|default:"John Doe" }}</div>
+                            <div class="admin-user-role">{{ user.email|default:"john@example.com" }}</div>
+                        </div>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-content">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('mobile-open');
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
