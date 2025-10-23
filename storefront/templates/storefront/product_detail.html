@@ -1,0 +1,1496 @@
+{% extends "storefront/base.html" %}
+{% load static %}
+
+{% block title %}{{ product.name }} - SmartCart{% endblock %}
+
+{% block extra_css %}
+<style>
+  .product-container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .breadcrumb {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 30px;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .breadcrumb a {
+    color: #667eea;
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+
+  .breadcrumb a:hover {
+    color: #5568d3;
+  }
+
+  .breadcrumb-separator {
+    color: #999;
+  }
+
+  .product-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    margin-bottom: 60px;
+  }
+
+  .product-gallery {
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+  }
+
+  .main-image-container {
+    width: 100%;
+    height: 500px;
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    position: relative;
+  }
+
+  .main-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: zoom-in;
+  }
+
+  .image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 120px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  }
+
+  .wishlist-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+    z-index: 10;
+  }
+
+  .wishlist-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  }
+
+  .wishlist-btn.active {
+    color: #e53935;
+  }
+
+  .thumbnail-gallery {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+  }
+
+  .thumbnail {
+    width: 100%;
+    height: 100px;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.3s;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+  }
+
+  .thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .thumbnail:hover {
+    border-color: #667eea;
+  }
+
+  .thumbnail.active {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  .product-info {
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  .product-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 15px;
+  }
+
+  .product-badge.sale {
+    background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+  }
+
+  .product-badge.new {
+    background: linear-gradient(135deg, #4CAF50 0%, #388e3c 100%);
+  }
+
+  .product-title {
+    font-size: 36px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 15px;
+    line-height: 1.2;
+  }
+
+  .product-rating {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+
+  .stars {
+    color: #ffc107;
+    font-size: 20px;
+    letter-spacing: 2px;
+  }
+
+  .rating-text {
+    color: #666;
+    font-size: 14px;
+  }
+
+  .rating-text a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .rating-text a:hover {
+    text-decoration: underline;
+  }
+
+  .product-price-section {
+    background: #f8f9ff;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+  }
+
+  .price-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+  }
+
+  .current-price {
+    font-size: 40px;
+    font-weight: 700;
+    color: #333;
+  }
+
+  .original-price {
+    font-size: 24px;
+    color: #999;
+    text-decoration: line-through;
+  }
+
+  .discount-badge {
+    background: #e53935;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .stock-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .stock-status.in-stock {
+    color: #4CAF50;
+  }
+
+  .stock-status.low-stock {
+    color: #ff9800;
+  }
+
+  .stock-status.out-of-stock {
+    color: #e53935;
+  }
+
+  .stock-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .product-description {
+    margin-bottom: 30px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .product-description h3 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 15px;
+    font-weight: 600;
+  }
+
+  .product-description p {
+    color: #666;
+    line-height: 1.8;
+    font-size: 15px;
+  }
+
+  .product-options {
+    margin-bottom: 30px;
+  }
+
+  .option-group {
+    margin-bottom: 25px;
+  }
+
+  .option-label {
+    display: block;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12px;
+    font-size: 15px;
+  }
+
+  .color-options {
+    display: flex;
+    gap: 12px;
+  }
+
+  .color-option {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: 3px solid #ddd;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+  }
+
+  .color-option:hover {
+    transform: scale(1.1);
+  }
+
+  .color-option.active {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+  }
+
+  .color-option::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: bold;
+    opacity: 0;
+    font-size: 20px;
+  }
+
+  .color-option.active::after {
+    opacity: 1;
+  }
+
+  .size-options {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .size-option {
+    padding: 12px 24px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #666;
+    transition: all 0.3s;
+    background: white;
+  }
+
+  .size-option:hover {
+    border-color: #667eea;
+    color: #667eea;
+  }
+
+  .size-option.active {
+    border-color: #667eea;
+    background: #667eea;
+    color: white;
+  }
+
+  .size-option.unavailable {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+
+  .quantity-label {
+    font-weight: 600;
+    color: #333;
+    font-size: 15px;
+  }
+
+  .quantity-controls {
+    display: flex;
+    align-items: center;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .qty-btn {
+    width: 45px;
+    height: 45px;
+    background: white;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.3s;
+  }
+
+  .qty-btn:hover {
+    background: #667eea;
+    color: white;
+  }
+
+  .qty-display {
+    width: 60px;
+    height: 45px;
+    text-align: center;
+    border: none;
+    border-left: 2px solid #ddd;
+    border-right: 2px solid #ddd;
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+
+  .add-to-cart-btn {
+    flex: 2;
+    padding: 18px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .add-to-cart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  .buy-now-btn {
+    flex: 1;
+    padding: 18px;
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .buy-now-btn:hover {
+    background: #667eea;
+    color: white;
+  }
+
+  .product-features {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    padding: 25px;
+    background: #f8f9ff;
+    border-radius: 12px;
+    margin-bottom: 30px;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .feature-icon {
+    font-size: 20px;
+  }
+
+  .product-meta {
+    padding-top: 25px;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  .meta-item {
+    display: flex;
+    padding: 10px 0;
+    font-size: 14px;
+  }
+
+  .meta-label {
+    font-weight: 600;
+    color: #666;
+    width: 120px;
+  }
+
+  .meta-value {
+    color: #333;
+  }
+
+  .meta-value a {
+    color: #667eea;
+    text-decoration: none;
+  }
+
+  .meta-value a:hover {
+    text-decoration: underline;
+  }
+
+  .product-tabs {
+    margin-top: 60px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
+
+  .tab-headers {
+    display: flex;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+  .tab-header {
+    flex: 1;
+    padding: 20px;
+    text-align: center;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-bottom: 3px solid transparent;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+
+  .tab-header:hover {
+    color: #667eea;
+    background: #f8f9ff;
+  }
+
+  .tab-header.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+  }
+
+  .tab-content {
+    display: none;
+    padding: 40px;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  .specifications-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .spec-item {
+    display: flex;
+    padding: 15px;
+    background: #f8f9ff;
+    border-radius: 8px;
+  }
+
+  .spec-label {
+    font-weight: 600;
+    color: #666;
+    min-width: 150px;
+  }
+
+  .spec-value {
+    color: #333;
+  }
+
+  .reviews-section {
+    margin-top: 40px;
+  }
+
+  .reviews-summary {
+    display: flex;
+    gap: 40px;
+    padding: 30px;
+    background: #f8f9ff;
+    border-radius: 12px;
+    margin-bottom: 30px;
+  }
+
+  .rating-overview {
+    text-align: center;
+  }
+
+  .rating-number {
+    font-size: 56px;
+    font-weight: 700;
+    color: #333;
+    line-height: 1;
+  }
+
+  .rating-stars-large {
+    color: #ffc107;
+    font-size: 24px;
+    margin: 10px 0;
+  }
+
+  .rating-count {
+    color: #666;
+    font-size: 14px;
+  }
+
+  .rating-breakdown {
+    flex: 1;
+  }
+
+  .rating-bar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 12px;
+  }
+
+  .rating-bar-label {
+    min-width: 60px;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .rating-bar-container {
+    flex: 1;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .rating-bar-fill {
+    height: 100%;
+    background: #ffc107;
+    transition: width 0.3s;
+  }
+
+  .rating-bar-count {
+    min-width: 40px;
+    text-align: right;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .review-item {
+    padding: 25px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 15px;
+  }
+
+  .reviewer-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .reviewer-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 20px;
+  }
+
+  .reviewer-details h4 {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 5px;
+  }
+
+  .review-date {
+    font-size: 13px;
+    color: #999;
+  }
+
+  .review-rating {
+    color: #ffc107;
+    font-size: 16px;
+  }
+
+  .review-content {
+    color: #666;
+    line-height: 1.8;
+    margin-bottom: 15px;
+  }
+
+  .review-helpful {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .helpful-btn {
+    background: none;
+    border: 1px solid #ddd;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .helpful-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+  }
+
+  .related-products {
+    margin-top: 60px;
+  }
+
+  .related-products h2 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 30px;
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
+  }
+
+  .related-product-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: all 0.3s;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .related-product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  }
+
+  .related-product-image {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 60px;
+  }
+
+  .related-product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .related-product-info {
+    padding: 20px;
+  }
+
+  .related-product-info h3 {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  .related-product-price {
+    font-size: 20px;
+    font-weight: 700;
+    color: #667eea;
+  }
+
+  @media (max-width: 968px) {
+    .product-main {
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+
+    .product-gallery {
+      position: static;
+    }
+
+    .main-image-container {
+      height: 400px;
+    }
+
+    .product-info {
+      padding: 25px;
+    }
+
+    .product-title {
+      font-size: 28px;
+    }
+
+    .current-price {
+      font-size: 32px;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+    }
+
+    .product-features {
+      grid-template-columns: 1fr;
+    }
+
+    .specifications-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .reviews-summary {
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .related-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tab-headers {
+      overflow-x: auto;
+    }
+
+    .tab-header {
+      min-width: 120px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="product-container">
+  <div class="breadcrumb">
+    <a href="{% url 'storefront:home' %}">Home</a>
+    <span class="breadcrumb-separator">›</span>
+    {% if product.category %}
+    <a href="#">{{ product.category }}</a>
+    <span class="breadcrumb-separator">›</span>
+    {% endif %}
+    <span>{{ product.name }}</span>
+  </div>
+
+  <div class="product-main">
+    <div class="product-gallery">
+      <div class="main-image-container">
+        <button class="wishlist-btn" onclick="toggleWishlist()" id="wishlistBtn">
+          ♡
+        </button>
+        {% if product.image %}
+          <img src="{{ product.image.url }}" alt="{{ product.name }}" class="main-image" id="mainImage">
+        {% else %}
+          <div class="image-placeholder">📦</div>
+        {% endif %}
+      </div>
+
+      <div class="thumbnail-gallery">
+        {% if product.image %}
+          <div class="thumbnail active" onclick="changeImage('{{ product.image.url }}', this)">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+          </div>
+          <!-- Add more thumbnails if you have multiple images -->
+          <div class="thumbnail" onclick="changeImage('{{ product.image.url }}', this)">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+          </div>
+          <div class="thumbnail" onclick="changeImage('{{ product.image.url }}', this)">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+          </div>
+          <div class="thumbnail" onclick="changeImage('{{ product.image.url }}', this)">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+          </div>
+        {% else %}
+          <div class="thumbnail active">📦</div>
+          <div class="thumbnail">📦</div>
+          <div class="thumbnail">📦</div>
+          <div class="thumbnail">📦</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="product-info">
+      {% if product.is_new %}
+      <span class="product-badge new">New Arrival</span>
+      {% elif product.on_sale %}
+      <span class="product-badge sale">On Sale</span>
+      {% else %}
+      <span class="product-badge">Featured</span>
+      {% endif %}
+
+      <h1 class="product-title">{{ product.name }}</h1>
+
+      <div class="product-rating">
+        <div class="stars">
+          {% if product.rating %}
+            {% for i in "12345" %}
+              {% if forloop.counter <= product.rating %}★{% else %}☆{% endif %}
+            {% endfor %}
+          {% else %}
+            ★★★★★
+          {% endif %}
+        </div>
+        <div class="rating-text">
+          <span>{{ product.rating|default:"5.0" }}</span> • 
+          <a href="#reviews">{{ product.review_count|default:"247" }} reviews</a>
+        </div>
+      </div>
+
+      <div class="product-price-section">
+        <div class="price-container">
+          <span class="current-price">${{ product.price|default:"29.99" }}</span>
+          {% if product.original_price %}
+          <span class="original-price">${{ product.original_price }}</span>
+          <span class="discount-badge">-{{ product.discount_percent }}%</span>
+          {% endif %}
+        </div>
+        
+        {% if product.stock %}
+          {% if product.stock > 10 %}
+          <div class="stock-status in-stock">
+            <span class="stock-dot"></span>
+            In Stock
+          </div>
+          {% elif product.stock > 0 %}
+          <div class="stock-status low-stock">
+            <span class="stock-dot"></span>
+            Only {{ product.stock }} left in stock
+          </div>
+          {% else %}
+          <div class="stock-status out-of-stock">
+            <span class="stock-dot"></span>
+            Out of Stock
+          </div>
+          {% endif %}
+        {% else %}
+        <div class="stock-status in-stock">
+          <span class="stock-dot"></span>
+          In Stock
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="product-description">
+        <h3>Description</h3>
+        <p>{{ product.description|default:"Experience premium quality with this exceptional product. Crafted with attention to detail and designed for those who appreciate excellence. Perfect for everyday use and special occasions alike." }}</p>
+      </div>
+
+      {% if product.has_colors %}
+      <div class="product-options">
+        <div class="option-group">
+          <label class="option-label">Color</label>
+          <div class="color-options">
+            <div class="color-option active" style="background: #333;" onclick="selectColor(this)"></div>
+            <div class="color-option" style="background: #667eea;" onclick="selectColor(this)"></div>
+            <div class="color-option" style="background: #e53935;" onclick="selectColor(this)"></div>
+            <div class="color-option" style="background: #4CAF50;" onclick="selectColor(this)"></div>
+            <div class="color-option" style="background: #fff; border-color: #ddd;" onclick="selectColor(this)"></div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if product.has_sizes %}
+      <div class="product-options">
+        <div class="option-group">
+          <label class="option-label">Size</label>
+          <div class="size-options">
+            <button class="size-option" onclick="selectSize(this)">XS</button>
+            <button class="size-option active" onclick="selectSize(this)">S</button>
+            <button class="size-option" onclick="selectSize(this)">M</button>
+            <button class="size-option" onclick="selectSize(this)">L</button>
+            <button class="size-option" onclick="selectSize(this)">XL</button>
+            <button class="size-option unavailable" disabled>XXL</button>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="quantity-selector">
+        <span class="quantity-label">Quantity:</span>
+        <div class="quantity-controls">
+          <button class="qty-btn" onclick="decrementQty()">−</button>
+          <input type="number" class="qty-display" id="quantity" value="1" min="1" max="99" readonly>
+          <button class="qty-btn" onclick="incrementQty()">+</button>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button class="add-to-cart-btn" onclick="addToCart({{ product.id }})">
+          <span>🛒</span>
+          Add to Cart
+        </button>
+        <button class="buy-now-btn" onclick="buyNow()">
+          Buy Now
+        </button>
+      </div>
+
+      <div class="product-features">
+        <div class="feature-item">
+          <span class="feature-icon">🚚</span>
+          <span>Free shipping over $50</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">↩️</span>
+          <span>30-day returns</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🔒</span>
+          <span>Secure checkout</span>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">✓</span>
+          <span>2-year warranty</span>
+        </div>
+      </div>
+
+      <div class="product-meta">
+        <div class="meta-item">
+          <span class="meta-label">SKU:</span>
+          <span class="meta-value">{{ product.sku|default:"PRD-12345" }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Category:</span>
+          <span class="meta-value">
+            <a href="#">{{ product.category|default:"Electronics" }}</a>
+          </span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Tags:</span>
+          <span class="meta-value">
+            <a href="#">{{ product.tags|default:"Featured" }}</a>, 
+            <a href="#">Best Seller</a>
+          </span>
+        </div>
+        {% if product.brand %}
+        <div class="meta-item">
+          <span class="meta-label">Brand:</span>
+          <span class="meta-value">{{ product.brand }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="product-tabs">
+    <div class="tab-headers">
+      <button class="tab-header active" onclick="switchTab(0)">Description</button>
+      <button class="tab-header" onclick="switchTab(1)">Specifications</button>
+      <button class="tab-header" onclick="switchTab(2)">Reviews (247)</button>
+      <button class="tab-header" onclick="switchTab(3)">Shipping & Returns</button>
+    </div>
+
+    <div class="tab-content active" id="tab-0">
+      <h3 style="margin-bottom: 20px; font-size: 24px;">Product Description</h3>
+      <p style="color: #666; line-height: 1.8; margin-bottom: 20px;">
+        {{ product.description|default:"Experience premium quality with this exceptional product. Crafted with attention to detail and designed for those who appreciate excellence." }}
+      </p>
+      <p style="color: #666; line-height: 1.8; margin-bottom: 20px;">
+        Our product combines innovative design with practical functionality. Whether you're looking for everyday reliability or exceptional performance, this product delivers on all fronts. Made with high-quality materials and built to last.
+      </p>
+      <h4 style="margin: 25px 0 15px; font-size: 18px;">Key Features:</h4>
+      <ul style="color: #666; line-height: 2; padding-left: 20px;">
+        <li>Premium quality construction for long-lasting durability</li>
+        <li>Ergonomic design for maximum comfort</li>
+        <li>Easy to use with intuitive controls</li>
+        <li>Eco-friendly and sustainable materials</li>
+        <li>Compatible with all standard accessories</li>
+      </ul>
+    </div>
+
+    <div class="tab-content" id="tab-1">
+      <h3 style="margin-bottom: 25px; font-size: 24px;">Technical Specifications</h3>
+      <div class="specifications-grid">
+        <div class="spec-item">
+          <span class="spec-label">Dimensions:</span>
+          <span class="spec-value">{{ product.dimensions|default:"10 x 8 x 2 inches" }}</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Weight:</span>
+          <span class="spec-value">{{ product.weight|default:"1.5 lbs" }}</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Material:</span>
+          <span class="spec-value">{{ product.material|default:"Premium Plastic & Metal" }}</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Color Options:</span>
+          <span class="spec-value">Black, Blue, Red, Green, White</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Warranty:</span>
+          <span class="spec-value">2 Years Manufacturer Warranty</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Origin:</span>
+          <span class="spec-value">{{ product.origin|default:"Made in USA" }}</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Model Number:</span>
+          <span class="spec-value">{{ product.model|default:"SC-2024-PRO" }}</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">Release Date:</span>
+          <span class="spec-value">{{ product.release_date|default:"January 2024" }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-2">
+      <div class="reviews-section">
+        <div class="reviews-summary">
+          <div class="rating-overview">
+            <div class="rating-number">{{ product.rating|default:"4.8" }}</div>
+            <div class="rating-stars-large">★★★★★</div>
+            <div class="rating-count">Based on {{ product.review_count|default:"247" }} reviews</div>
+          </div>
+          
+          <div class="rating-breakdown">
+            <div class="rating-bar">
+              <span class="rating-bar-label">5 stars</span>
+              <div class="rating-bar-container">
+                <div class="rating-bar-fill" style="width: 75%;"></div>
+              </div>
+              <span class="rating-bar-count">185</span>
+            </div>
+            <div class="rating-bar">
+              <span class="rating-bar-label">4 stars</span>
+              <div class="rating-bar-container">
+                <div class="rating-bar-fill" style="width: 15%;"></div>
+              </div>
+              <span class="rating-bar-count">37</span>
+            </div>
+            <div class="rating-bar">
+              <span class="rating-bar-label">3 stars</span>
+              <div class="rating-bar-container">
+                <div class="rating-bar-fill" style="width: 7%;"></div>
+              </div>
+              <span class="rating-bar-count">17</span>
+            </div>
+            <div class="rating-bar">
+              <span class="rating-bar-label">2 stars</span>
+              <div class="rating-bar-container">
+                <div class="rating-bar-fill" style="width: 2%;"></div>
+              </div>
+              <span class="rating-bar-count">5</span>
+            </div>
+            <div class="rating-bar">
+              <span class="rating-bar-label">1 star</span>
+              <div class="rating-bar-container">
+                <div class="rating-bar-fill" style="width: 1%;"></div>
+              </div>
+              <span class="rating-bar-count">3</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-item">
+          <div class="review-header">
+            <div class="reviewer-info">
+              <div class="reviewer-avatar">JS</div>
+              <div class="reviewer-details">
+                <h4>John Smith</h4>
+                <div class="review-date">Verified Purchase • 2 weeks ago</div>
+              </div>
+            </div>
+            <div class="review-rating">★★★★★</div>
+          </div>
+          <div class="review-content">
+            Amazing product! Exceeded my expectations in every way. The build quality is excellent, and it works exactly as advertised. Highly recommend to anyone looking for a reliable solution.
+          </div>
+          <div class="review-helpful">
+            <span>Was this helpful?</span>
+            <button class="helpful-btn">👍 Yes (24)</button>
+            <button class="helpful-btn">👎 No (2)</button>
+          </div>
+        </div>
+
+        <div class="review-item">
+          <div class="review-header">
+            <div class="reviewer-info">
+              <div class="reviewer-avatar">EJ</div>
+              <div class="reviewer-details">
+                <h4>Emily Johnson</h4>
+                <div class="review-date">Verified Purchase • 1 month ago</div>
+              </div>
+            </div>
+            <div class="review-rating">★★★★★</div>
+          </div>
+          <div class="review-content">
+            Great value for money. I've been using this for a month now and it's been fantastic. The customer service was also very helpful when I had questions about setup.
+          </div>
+          <div class="review-helpful">
+            <span>Was this helpful?</span>
+            <button class="helpful-btn">👍 Yes (18)</button>
+            <button class="helpful-btn">👎 No (1)</button>
+          </div>
+        </div>
+
+        <div class="review-item">
+          <div class="review-header">
+            <div class="reviewer-info">
+              <div class="reviewer-avatar">MD</div>
+              <div class="reviewer-details">
+                <h4>Michael Davis</h4>
+                <div class="review-date">Verified Purchase • 2 months ago</div>
+              </div>
+            </div>
+            <div class="review-rating">★★★★☆</div>
+          </div>
+          <div class="review-content">
+            Good product overall. Does what it's supposed to do. Only minor complaint is that the packaging could be better, but the product itself arrived in perfect condition.
+          </div>
+          <div class="review-helpful">
+            <span>Was this helpful?</span>
+            <button class="helpful-btn">👍 Yes (12)</button>
+            <button class="helpful-btn">👎 No (0)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-3">
+      <h3 style="margin-bottom: 25px; font-size: 24px;">Shipping Information</h3>
+      <div style="background: #f8f9ff; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
+        <h4 style="margin-bottom: 15px; font-size: 18px;">📦 Delivery Options</h4>
+        <ul style="color: #666; line-height: 2; padding-left: 20px;">
+          <li><strong>Standard Shipping:</strong> 5-7 business days - FREE on orders over $50</li>
+          <li><strong>Express Shipping:</strong> 2-3 business days - $15.99</li>
+          <li><strong>Next Day Delivery:</strong> Order before 2 PM - $24.99</li>
+          <li><strong>International Shipping:</strong> 10-15 business days - Calculated at checkout</li>
+        </ul>
+      </div>
+
+      <h3 style="margin-bottom: 25px; font-size: 24px;">Return Policy</h3>
+      <div style="background: #f8f9ff; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
+        <h4 style="margin-bottom: 15px; font-size: 18px;">↩️ Easy Returns</h4>
+        <p style="color: #666; line-height: 1.8; margin-bottom: 15px;">
+          We offer a hassle-free 30-day return policy. If you're not completely satisfied with your purchase, you can return it for a full refund or exchange.
+        </p>
+        <ul style="color: #666; line-height: 2; padding-left: 20px;">
+          <li>Items must be in original condition with tags attached</li>
+          <li>Free return shipping on defective items</li>
+          <li>Refunds processed within 5-7 business days</li>
+          <li>Exchanges available for different sizes/colors</li>
+        </ul>
+      </div>
+
+      <h3 style="margin-bottom: 25px; font-size: 24px;">Warranty Coverage</h3>
+      <div style="background: #f8f9ff; padding: 25px; border-radius: 12px;">
+        <h4 style="margin-bottom: 15px; font-size: 18px;">✓ 2-Year Warranty</h4>
+        <p style="color: #666; line-height: 1.8;">
+          All our products come with a comprehensive 2-year manufacturer warranty covering defects in materials and workmanship. Extended warranty options available at checkout.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  {% if related_products %}
+  <div class="related-products">
+    <h2>You May Also Like</h2>
+    <div class="related-grid">
+      {% for related in related_products %}
+      <a href="{% url 'storefront:product_detail' related.id %}" class="related-product-card">
+        <div class="related-product-image">
+          {% if related.image %}
+            <img src="{{ related.image.url }}" alt="{{ related.name }}">
+          {% else %}
+            📦
+          {% endif %}
+        </div>
+        <div class="related-product-info">
+          <h3>{{ related.name }}</h3>
+          <div class="related-product-price">${{ related.price|default:"29.99" }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="related-products">
+    <h2>You May Also Like</h2>
+    <div class="related-grid">
+      <a href="#" class="related-product-card">
+        <div class="related-product-image">📱</div>
+        <div class="related-product-info">
+          <h3>Premium Headphones</h3>
+          <div class="related-product-price">$79.99</div>
+        </div>
+      </a>
+      <a href="#" class="related-product-card">
+        <div class="related-product-image">⌚</div>
+        <div class="related-product-info">
+          <h3>Smart Watch</h3>
+          <div class="related-product-price">$199.99</div>
+        </div>
+      </a>
+      <a href="#" class="related-product-card">
+        <div class="related-product-image">💻</div>
+        <div class="related-product-info">
+          <h3>Wireless Keyboard</h3>
+          <div class="related-product-price">$49.99</div>
+        </div>
+      </a>
+      <a href="#" class="related-product-card">
+        <div class="related-product-image">🎮</div>
+        <div class="related-product-info">
+          <h3>Gaming Mouse</h3>
+          <div class="related-product-price">$59.99</div>
+        </div>
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  let quantity = 1;
+
+  function incrementQty() {
+    if (quantity < 99) {
+      quantity++;
+      document.getElementById('quantity').value = quantity;
+    }
+  }
+
+  function decrementQty() {
+    if (quantity > 1) {
+      quantity--;
+      document.getElementById('quantity').value = quantity;
+    }
+  }
+
+  function selectColor(element) {
+    document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
+    element.classList.add('active');
+  }
+
+  function selectSize(element) {
+    if (!element.disabled) {
+      document.querySelectorAll('.size-option').forEach(opt => opt.classList.remove('active'));
+      element.classList.add('active');
+    }
+  }
+
+  function changeImage(src, element) {
+    document.getElementById('mainImage').src = src;
+    document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
+    element.classList.add('active');
+  }
+
+  function toggleWishlist() {
+    const btn = document.getElementById('wishlistBtn');
+    btn.classList.toggle('active');
+    
+    if (btn.classList.contains('active')) {
+      btn.textContent = '♥';
+      showToast('Added to wishlist');
+    } else {
+      btn.textContent = '♡';
+      showToast('Removed from wishlist');
+    }
+  }
+
+  function addToCart(productId) {
+    const qty = document.getElementById('quantity').value;
+    const selectedColor = document.querySelector('.color-option.active');
+    const selectedSize = document.querySelector('.size-option.active');
+
+    // Show loading state
+    const addBtn = document.querySelector('.add-to-cart-btn');
+    const originalText = addBtn.innerHTML;
+    addBtn.innerHTML = '<span>⏳</span> Adding...';
+    addBtn.disabled = true;
+
+    // Make AJAX call to add to cart
+    fetch(`/storefront/cart/add/${productId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify({
+        quantity: qty,
+        color: selectedColor ? selectedColor.style.background : null,
+        size: selectedSize ? selectedSize.textContent : null
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      showToast('Added to cart successfully! 🎉');
+      
+      // Update cart badge
+      const badge = document.querySelector('.cart-badge');
+      if (badge) {
+        badge.textContent = parseInt(badge.textContent) + parseInt(qty);
+      }
+      
+      // Reset button
+      setTimeout(() => {
+        addBtn.innerHTML = originalText;
+        addBtn.disabled = false;
+      }, 1000);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showToast('Failed to add to cart');
+      addBtn.innerHTML = originalText;
+      addBtn.disabled = false;
+    });
+  }
+
+  function buyNow() {
+    const productId = {{ product.id|default:"1" }};
+    addToCart(productId);
+    
+    setTimeout(() => {
+      window.location.href = '{% url "storefront:checkout" %}';
+    }, 1000);
+  }
+
+  function switchTab(index) {
+    // Remove active class from all tabs
+    document.querySelectorAll('.tab-header').forEach(header => header.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Add active class to selected tab
+    document.querySelectorAll('.tab-header')[index].classList.add('active');
+    document.getElementById(`tab-${index}`).classList.add('active');
+    
+    // Smooth scroll to tabs section
+    document.querySelector('.product-tabs').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // Image zoom on hover
+  const mainImage = document.getElementById('mainImage');
+  if (mainImage) {
+    mainImage.addEventListener('mousemove', function(e) {
+      const rect = this.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      this.style.transformOrigin = `${x}% ${y}%`;
+      this.style.transform = 'scale(1.5)';
+    });
+
+    mainImage.addEventListener('mouseleave', function() {
+      this.style.transform = 'scale(1)';
+    });
+  }
+
+  // Scroll to reviews when clicking on rating
+  document.querySelector('.rating-text a')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    switchTab(2);
+  });
+</script>
+{% endblock %}

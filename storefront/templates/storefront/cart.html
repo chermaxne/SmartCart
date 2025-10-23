@@ -1,27 +1,768 @@
 {% extends "storefront/base.html" %}
+{% load static %}
 
 {% block title %}Your Cart{% endblock %}
 
-{% block content %}
-<h2>Your Cart</h2>
-{% if order_items %}
-<ul>
-  {% for item in order_items %}
-    <li>{{ item.product.name }} (x{{ item.quantity }})</li>
-  {% endfor %}
-</ul>
-{% else %}
-<p>Your cart is empty.</p>
-{% endif %}
+{% block extra_css %}
+<style>
+  .cart-container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
 
-<h3>Recommended for You</h3>
-<ul>
-  {% for product in recommended_products %}
-    <li>
-      <a href="{% url 'storefront:product_detail' product.id %}">
-        {{ product.name }}
-      </a> - ${{ product.price }}
-    </li>
-  {% endfor %}
-</ul>
+  .cart-header {
+    margin-bottom: 40px;
+  }
+
+  .cart-header h1 {
+    font-size: 32px;
+    color: #333;
+    margin-bottom: 10px;
+  }
+
+  .cart-header p {
+    color: #666;
+    font-size: 16px;
+  }
+
+  .cart-content {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 30px;
+    align-items: start;
+  }
+
+  .cart-items {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+
+  .cart-items-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 50px;
+    padding: 15px 0;
+    border-bottom: 2px solid #f0f0f0;
+    font-weight: 600;
+    color: #666;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .cart-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 50px;
+    align-items: center;
+    padding: 25px 0;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.3s;
+  }
+
+  .cart-item:hover {
+    background: #f9f9f9;
+  }
+
+  .item-info {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .item-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .item-details h3 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .item-details p {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 4px;
+  }
+
+  .item-stock {
+    font-size: 13px;
+    color: #4CAF50;
+    font-weight: 600;
+  }
+
+  .item-stock.low {
+    color: #ff9800;
+  }
+
+  .item-stock.out {
+    color: #e53935;
+  }
+
+  .item-price {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+  }
+
+  .quantity-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .qty-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+  }
+
+  .qty-btn:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+  }
+
+  .qty-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .qty-input {
+    width: 50px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px;
+    font-weight: 600;
+  }
+
+  .item-total {
+    font-size: 20px;
+    font-weight: 700;
+    color: #667eea;
+  }
+
+  .remove-btn {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 5px;
+  }
+
+  .remove-btn:hover {
+    color: #e53935;
+    transform: scale(1.2);
+  }
+
+  .cart-summary {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    position: sticky;
+    top: 100px;
+  }
+
+  .cart-summary h2 {
+    font-size: 22px;
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+  .promo-section {
+    margin-bottom: 25px;
+  }
+
+  .promo-input-group {
+    display: flex;
+    gap: 10px;
+  }
+
+  .promo-input-group input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+
+  .promo-input-group input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .apply-promo-btn {
+    padding: 12px 20px;
+    background: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+
+  .apply-promo-btn:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    color: #666;
+    font-size: 15px;
+  }
+
+  .summary-row.discount {
+    color: #4CAF50;
+  }
+
+  .summary-row.total {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #f0f0f0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #333;
+  }
+
+  .checkout-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s;
+  }
+
+  .checkout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  .checkout-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .continue-shopping {
+    display: block;
+    text-align: center;
+    margin-top: 15px;
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s;
+  }
+
+  .continue-shopping:hover {
+    color: #5568d3;
+  }
+
+  .secure-checkout-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 15px;
+    color: #666;
+    font-size: 13px;
+  }
+
+  .empty-cart {
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  }
+
+  .empty-cart-icon {
+    font-size: 120px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+  }
+
+  .empty-cart h2 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 15px;
+  }
+
+  .empty-cart p {
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 30px;
+  }
+
+  .shop-now-btn {
+    display: inline-block;
+    padding: 14px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s;
+  }
+
+  .shop-now-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  .recommendations-section {
+    margin-top: 50px;
+  }
+
+  .recommendations-section h2 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+
+  .recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 25px;
+  }
+
+  .recommendation-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    transition: all 0.3s;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .recommendation-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  }
+
+  .recommendation-image {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 60px;
+  }
+
+  .recommendation-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .recommendation-info {
+    padding: 20px;
+  }
+
+  .recommendation-info h3 {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  .recommendation-price {
+    font-size: 20px;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 15px;
+  }
+
+  .add-to-cart-rec-btn {
+    width: 100%;
+    padding: 10px;
+    background: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+
+  .add-to-cart-rec-btn:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+  }
+
+  @media (max-width: 968px) {
+    .cart-content {
+      grid-template-columns: 1fr;
+    }
+
+    .cart-summary {
+      position: static;
+    }
+
+    .cart-items-header {
+      display: none;
+    }
+
+    .cart-item {
+      grid-template-columns: 1fr;
+      gap: 15px;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .item-info {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .quantity-control {
+      justify-content: center;
+    }
+
+    .recommendations-grid {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cart-container">
+  <div class="cart-header">
+    <h1>Shopping Cart</h1>
+    <p>{% if order_items %}{{ order_items|length }} item{{ order_items|length|pluralize }} in your cart{% else %}Your cart is empty{% endif %}</p>
+  </div>
+
+  {% if order_items %}
+  <div class="cart-content">
+    <div class="cart-items">
+      <div class="cart-items-header">
+        <div>Product</div>
+        <div>Price</div>
+        <div>Quantity</div>
+        <div>Total</div>
+        <div></div>
+      </div>
+
+      {% for item in order_items %}
+      <div class="cart-item" data-item-id="{{ item.id }}">
+        <div class="item-info">
+          <div class="item-image">
+            {% if item.product.image %}
+              <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+            {% else %}
+              📦
+            {% endif %}
+          </div>
+          <div class="item-details">
+            <h3>{{ item.product.name }}</h3>
+            {% if item.product.category %}
+            <p>Category: {{ item.product.category }}</p>
+            {% endif %}
+            {% if item.product.stock %}
+            <span class="item-stock {% if item.product.stock == 0 %}out{% elif item.product.stock and item.product.stock < 5 %}low{% endif %}">
+              {% if item.product.stock %}
+                {{ item.product.stock }} in stock
+              {% else %}
+                Out of stock
+              {% endif %}
+            </span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="item-price">
+          ${{ item.product.price|default:"29.99" }}
+        </div>
+
+        <div class="quantity-control">
+          <button class="qty-btn" onclick="updateQuantity({{ item.id }}, -1)">−</button>
+          <input type="number" class="qty-input" value="{{ item.quantity }}" min="1" max="99" 
+                 onchange="updateQuantity({{ item.id }}, this.value, true)">
+          <button class="qty-btn" onclick="updateQuantity({{ item.id }}, 1)">+</button>
+        </div>
+
+        <div class="item-total">
+          $<span id="total-{{ item.id }}">{{ item.total_price|default:"29.99" }}</span>
+        </div>
+
+        <button class="remove-btn" onclick="removeItem({{ item.id }})" title="Remove item">
+          ×
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="cart-summary">
+      <h2>Order Summary</h2>
+
+      <div class="promo-section">
+        <div class="promo-input-group">
+          <input type="text" id="promoCode" placeholder="Enter promo code">
+          <button class="apply-promo-btn" onclick="applyPromo()">Apply</button>
+        </div>
+      </div>
+
+      <div class="summary-row">
+        <span>Subtotal ({{ order_items|length }} items)</span>
+        <span id="subtotal">${{ subtotal|default:"89.97" }}</span>
+      </div>
+
+      <div class="summary-row">
+        <span>Shipping</span>
+        <span id="shipping">${{ shipping|default:"9.99" }}</span>
+      </div>
+
+      <div class="summary-row">
+        <span>Tax</span>
+        <span id="tax">${{ tax|default:"8.00" }}</span>
+      </div>
+
+      <div class="summary-row discount" id="discountRow" style="display: none;">
+        <span>Discount</span>
+        <span id="discount">-$0.00</span>
+      </div>
+
+      <div class="summary-row total">
+        <span>Total</span>
+        <span id="total">${{ total|default:"107.96" }}</span>
+      </div>
+
+      <button class="checkout-btn" onclick="window.location.href=`{% url 'storefront:checkout' %}`">
+        Proceed to Checkout
+      </button>
+
+      <a href="{% url 'storefront:home' %}" class="continue-shopping">
+        ← Continue Shopping
+      </a>
+
+      <div class="secure-checkout-badge">
+        🔒 Secure Checkout
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="empty-cart">
+    <div class="empty-cart-icon">🛒</div>
+    <h2>Your Cart is Empty</h2>
+    <p>Looks like you haven't added anything to your cart yet.</p>
+    <a href="{% url 'storefront:home' %}" class="shop-now-btn">Start Shopping</a>
+  </div>
+  {% endif %}
+
+  {% if recommended_products %}
+  <div class="recommendations-section">
+    <h2>{% if order_items %}You May Also Like{% else %}Popular Products{% endif %}</h2>
+    <div class="recommendations-grid">
+      {% for product in recommended_products %}
+      <div class="recommendation-card">
+        <a href="{% url 'storefront:product_detail' product.id %}" style="text-decoration: none; color: inherit;">
+          <div class="recommendation-image">
+            {% if product.image %}
+              <img src="{{ product.image.url }}" alt="{{ product.name }}">
+            {% else %}
+              📦
+            {% endif %}
+          </div>
+          <div class="recommendation-info">
+            <h3>{{ product.name }}</h3>
+            <div class="recommendation-price">${{ product.price|default:"29.99" }}</div>
+          </div>
+        </a>
+        <button class="add-to-cart-rec-btn" 
+                onclick="addToCart('{{ product.id }}'); event.stopPropagation();">
+            Add to Cart
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  function updateQuantity(itemId, change, absolute = false) {
+    const qtyInput = document.querySelector(`.cart-item[data-item-id="${itemId}"] .qty-input`);
+    let newQty;
+    
+    if (absolute) {
+      newQty = parseInt(change);
+    } else {
+      newQty = parseInt(qtyInput.value) + change;
+    }
+    
+    if (newQty < 1) newQty = 1;
+    if (newQty > 99) newQty = 99;
+    
+    qtyInput.value = newQty;
+    
+    // Make AJAX call to update quantity on server
+    fetch(`/storefront/cart/update/${itemId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify({ quantity: newQty })
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Update totals
+      document.getElementById(`total-${itemId}`).textContent = data.item_total;
+      document.getElementById('subtotal').textContent = '$' + data.subtotal;
+      document.getElementById('total').textContent = '$' + data.total;
+      showToast('Cart updated successfully');
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showToast('Failed to update cart');
+    });
+  }
+
+  function removeItem(itemId) {
+    if (!confirm('Remove this item from your cart?')) return;
+    
+    fetch(`/storefront/cart/remove/${itemId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken')
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Remove item from DOM
+      const item = document.querySelector(`.cart-item[data-item-id="${itemId}"]`);
+      item.style.opacity = '0';
+      setTimeout(() => {
+        item.remove();
+        
+        // Check if cart is empty
+        if (document.querySelectorAll('.cart-item').length === 0) {
+          location.reload();
+        } else {
+          // Update totals
+          document.getElementById('subtotal').textContent = '$' + data.subtotal;
+          document.getElementById('total').textContent = '$' + data.total;
+        }
+      }, 300);
+      
+      showToast('Item removed from cart');
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showToast('Failed to remove item');
+    });
+  }
+
+  function applyPromo() {
+    const promoCode = document.getElementById('promoCode').value.toUpperCase();
+    
+    if (!promoCode) {
+      showToast('Please enter a promo code');
+      return;
+    }
+    
+    // Simulate promo code validation
+    if (promoCode === 'SAVE10') {
+      const subtotalEl = document.getElementById('subtotal');
+      const subtotal = parseFloat(subtotalEl.textContent.replace('$', ''));
+      const discount = (subtotal * 0.1).toFixed(2);
+      
+      document.getElementById('discountRow').style.display = 'flex';
+      document.getElementById('discount').textContent = `-$${discount}`;
+      
+      const total = parseFloat(document.getElementById('total').textContent.replace('$', ''));
+      document.getElementById('total').textContent = `$${(total - discount).toFixed(2)}`;
+      
+      showToast('Promo code applied! 10% off');
+      document.getElementById('promoCode').disabled = true;
+      document.querySelector('.apply-promo-btn').disabled = true;
+    } else {
+      showToast('Invalid promo code');
+    }
+  }
+
+  function addToCart(productId) {
+  fetch(`/storefront/cart/add/${productId}/`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+  })
+  .then(response => response.json())
+  .then(data => {
+    showToast('Added to cart!');
+    const badge = document.querySelector('.cart-badge');
+    if (badge) badge.textContent = parseInt(badge.textContent) + 1;
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showToast('Failed to add item');
+  });
+}
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+</script>
 {% endblock %}

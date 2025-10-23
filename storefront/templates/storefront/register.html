@@ -1,12 +1,209 @@
 {% extends "storefront/base.html" %}
-
+{% load static %}
 {% block title %}Register{% endblock %}
 
+{% block extra_css %}
+<style>
+  .register-container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  
+  .register-container h2 {
+    color: #333;
+    margin-bottom: 30px;
+    text-align: center;
+    font-size: 28px;
+  }
+  
+  fieldset {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 25px;
+  }
+  
+  legend {
+    font-weight: 600;
+    color: #555;
+    padding: 0 10px;
+    font-size: 18px;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 6px;
+    color: #555;
+    font-weight: 500;
+    font-size: 14px;
+  }
+  
+  input, select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+  }
+  
+  input:focus, select:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76,175,80,0.1);
+  }
+  
+  .errorlist {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0 0;
+  }
+  
+  .errorlist li {
+    color: #d32f2f;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  
+  .non-field-errors {
+    background: #ffebee;
+    color: #c62828;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    border-left: 4px solid #d32f2f;
+  }
+  
+  button[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  button[type="submit"]:hover {
+    background: #45a049;
+  }
+  
+  .help-text {
+    font-size: 12px;
+    color: #777;
+    margin-top: 4px;
+  }
+  
+  .login-link {
+    text-align: center;
+    margin-top: 20px;
+    color: #666;
+  }
+  
+  .login-link a {
+    color: #4CAF50;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  
+  .login-link a:hover {
+    text-decoration: underline;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<h2>Register</h2>
-<form method="POST">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Register</button>
-</form>
+<div class="register-container">
+  <h2>Create Your Account</h2>
+  
+  <form method="POST" novalidate>
+    {% csrf_token %}
+
+    {% if user_form.non_field_errors %}
+    <div class="non-field-errors">
+      {{ user_form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    <fieldset>
+      <legend>Account Information</legend>
+      
+      <div class="form-group">
+        {{ user_form.username.label_tag }}
+        {{ user_form.username }}
+        {{ user_form.username.errors }}
+      </div>
+
+      <div class="form-group">
+        {{ user_form.email.label_tag }}
+        {{ user_form.email }}
+        {{ user_form.email.errors }}
+      </div>
+
+      <div class="form-group">
+        {{ user_form.password1.label_tag }}
+        {{ user_form.password1 }}
+        {{ user_form.password1.errors }}
+      </div>
+
+      <div class="form-group">
+        {{ user_form.password2.label_tag }}
+        {{ user_form.password2 }}
+        {{ user_form.password2.errors }}
+      </div>
+    </fieldset>
+
+    {% if customer_form.non_field_errors %}
+    <div class="non-field-errors">
+      {{ customer_form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    <fieldset>
+      <legend>Profile Information</legend>
+      
+      <div class="form-group">
+        {{ customer_form.age.label_tag }}
+        {{ customer_form.age }}
+        {{ customer_form.age.errors }}
+      </div>
+
+      <div class="form-group">
+        {{ customer_form.gender.label_tag }}
+        {{ customer_form.gender }}
+        {{ customer_form.gender.errors }}
+      </div>
+
+      <div class="form-group">
+        {{ customer_form.employment.label_tag }}
+        {{ customer_form.employment }}
+        {{ customer_form.employment.errors }}
+      </div>
+
+      <div class="form-group">
+        {{ customer_form.income_range.label_tag }}
+        {{ customer_form.income_range }}
+        {{ customer_form.income_range.errors }}
+      </div>
+    </fieldset>
+
+    <button type="submit">Create Account</button>
+  </form>
+  
+  <div class="login-link">
+    Already have an account? <a href="{% url 'login' %}">Sign in</a>
+  </div>
+</div>
 {% endblock %}

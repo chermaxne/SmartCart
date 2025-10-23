@@ -1,12 +1,337 @@
 {% extends "storefront/base.html" %}
+{% load static %}
 
 {% block title %}Store Home{% endblock %}
 
+{% block extra_css %}
+<style>
+  .hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 60px 20px;
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  
+  .hero-section h1 {
+    font-size: 48px;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+  
+  .hero-section p {
+    font-size: 20px;
+    opacity: 0.9;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .filters-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  
+  .search-box {
+    flex: 1;
+    min-width: 250px;
+  }
+  
+  .search-box input {
+    width: 100%;
+    padding: 12px 20px;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+    font-size: 14px;
+  }
+  
+  .search-box input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+  
+  .sort-filter select {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+    margin-bottom: 50px;
+  }
+  
+  .product-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+  }
+  
+  .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  }
+  
+  .product-image {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 80px;
+    color: rgba(0,0,0,0.1);
+  }
+  
+  .product-info {
+    padding: 20px;
+  }
+  
+  .product-category {
+    font-size: 12px;
+    color: #667eea;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  .product-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+    text-decoration: none;
+    display: block;
+  }
+  
+  .product-name:hover {
+    color: #667eea;
+  }
+  
+  .product-description {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 15px;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .product-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .product-price {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333;
+  }
+  
+  .add-to-cart-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .add-to-cart-btn:hover {
+    background: #5568d3;
+  }
+  
+  .rating {
+    color: #ffc107;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  
+  .empty-state img {
+    width: 200px;
+    opacity: 0.3;
+    margin-bottom: 20px;
+  }
+  
+  .empty-state h3 {
+    color: #666;
+    font-size: 24px;
+  }
+  
+  @media (max-width: 768px) {
+    .hero-section h1 {
+      font-size: 32px;
+    }
+    
+    .products-grid {
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<h1>Store Home</h1>
-<ul>
-  {% for product in products %}
-    <li><a href="{% url 'product_detail' id=product.id %}">{{ product.name }}</a></li>
-  {% endfor %}
-</ul>
+<div class="hero-section">
+  <h1>Welcome to Our Store</h1>
+  <p>Discover amazing products at great prices</p>
+</div>
+
+<div class="container">
+  <div class="filters-section">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="🔍 Search products..." onkeyup="filterProducts()">
+    </div>
+    <div class="sort-filter">
+      <select id="sortSelect" onchange="sortProducts()">
+        <option value="">Sort by</option>
+        <option value="name-asc">Name (A-Z)</option>
+        <option value="name-desc">Name (Z-A)</option>
+        <option value="price-asc">Price (Low to High)</option>
+        <option value="price-desc">Price (High to Low)</option>
+      </select>
+    </div>
+  </div>
+
+  {% if products %}
+  <div class="products-grid" id="productsGrid">
+    {% for product in products %}
+    <div class="product-card" data-name="{{ product.name|lower }}" data-price="{{ product.price|default:0 }}">
+      <a href="{% url 'storefront:product_detail' id=product.id %}" style="text-decoration: none; color: inherit;">
+        <div class="product-image">
+          {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+          {% else %}
+            📦
+          {% endif %}
+        </div>
+        <div class="product-info">
+          {% if product.category %}
+          <div class="product-category">{{ product.category }}</div>
+          {% endif %}
+          
+          <div class="product-name">{{ product.name }}</div>
+          
+          {% if product.description %}
+          <div class="product-description">{{ product.description|truncatewords:15 }}</div>
+          {% endif %}
+          
+          {% if product.rating %}
+          <div class="rating">
+            {% for i in "12345" %}
+              {% if forloop.counter <= product.rating %}★{% else %}☆{% endif %}
+            {% endfor %}
+          </div>
+          {% endif %}
+          
+          <div class="product-footer">
+            {% if product.price %}
+            <div class="product-price">${{ product.price }}</div>
+            {% endif %}
+            <button class="add-to-cart-btn" onclick="event.preventDefault(); addToCart({{ product.id }})">
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div style="font-size: 80px; margin-bottom: 20px;">📦</div>
+    <h3>No products available</h3>
+    <p>Check back soon for new items!</p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  function filterProducts() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const cards = document.querySelectorAll('.product-card');
+    
+    cards.forEach(card => {
+      const productName = card.getAttribute('data-name');
+      if (productName.includes(searchTerm)) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+  
+  function sortProducts() {
+    const sortValue = document.getElementById('sortSelect').value;
+    const grid = document.getElementById('productsGrid');
+    const cards = Array.from(document.querySelectorAll('.product-card'));
+    
+    cards.sort((a, b) => {
+      const nameA = a.getAttribute('data-name');
+      const nameB = b.getAttribute('data-name');
+      const priceA = parseFloat(a.getAttribute('data-price'));
+      const priceB = parseFloat(b.getAttribute('data-price'));
+      
+      switch(sortValue) {
+        case 'name-asc':
+          return nameA.localeCompare(nameB);
+        case 'name-desc':
+          return nameB.localeCompare(nameA);
+        case 'price-asc':
+          return priceA - priceB;
+        case 'price-desc':
+          return priceB - priceA;
+        default:
+          return 0;
+      }
+    });
+    
+    cards.forEach(card => grid.appendChild(card));
+  }
+  
+  function addToCart(productId) {
+  fetch(`/storefront/cart/add/${productId}/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken'),
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: new URLSearchParams({ quantity: 1 })
+  })
+  .then(r => r.json())
+  .then(data => {
+    const badge = document.querySelector('.cart-badge');
+    if (badge) badge.textContent = data.cart_count;
+    showToast('Added to cart');
+  })
+  .catch(()=> showToast('Failed to add'));
+}
+</script>
 {% endblock %}
