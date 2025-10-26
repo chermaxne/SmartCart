@@ -64,4 +64,4 @@ with open(csv_path, newline='', encoding='utf-8') as csvfile:
             skipped += 1
             continue
 
-print(f"✅ CSV import completed: created={created}, skipped={skipped}, updated={updated}")
+print(f" CSV import completed: created={created}, skipped={skipped}, updated={updated}")

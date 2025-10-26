@@ -88,4 +88,4 @@ with fh:
                 skipped += 1
                 continue
 
-print(f"✅ Products import finished — created={created}, updated={updated}, skipped={skipped}")
+print(f"Products import finished — created={created}, updated={updated}, skipped={skipped}")

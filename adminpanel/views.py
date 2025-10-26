@@ -1,15 +1,25 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
-from storefront.models import Product, Customer, Recommendation
+from django.db.models import Avg, F
+from storefront.models import Product, Customer
 from .forms import ProductForm, RecommendationForm
 
 # Dashboard view (Inventory alerts)
 @staff_member_required
 def dashboard_view(request):
-    low_stock_products = Product.objects.filter(stock__lte=5)  # Example threshold
-    return render(request, "adminpanel/dashboard.html", {
-        'low_stock_products': low_stock_products
-    })
+    total_products = Product.objects.count()
+    avg_price = Product.objects.aggregate(Avg('price'))['price__avg'] or 0
+    avg_rating = Product.objects.aggregate(Avg('rating'))['rating__avg'] or 0
+    low_stock_products = Product.objects.filter(stock__lte=F('reorder_threshold'))
+
+    context = {
+        'total_products': total_products,
+        'avg_price': avg_price,
+        'avg_rating': avg_rating,
+        'low_stock_products': low_stock_products,
+    }
+
+    return render(request, 'adminpanel/dashboard.html', context)
 
 # Product CRUD
 @staff_member_required

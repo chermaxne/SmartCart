@@ -1,11 +1,11 @@
 {% extends "adminpanel/base.html" %}
-{% block title %}{% if form.instance.pk %}Edit Product{% else %}Add Product{% endif %}{% endblock %}
+{% block title %}{{ form.instance.pk|yesno:"Edit Product,Add Product" }}{% endblock %}
 {% block content %}
-<h1>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Product</h1>
-<form method="POST" enctype="multipart/form-data">
+<h2>{{ form.instance.pk|yesno:"Edit Product,Add Product" }}</h2>
+<form method="post" enctype="multipart/form-data" class="card p-4 shadow-sm">
   {% csrf_token %}
   {{ form.as_p }}
-  <button type="submit">Save</button>
+  <button type="submit" class="btn btn-success">Save</button>
+  <a href="{% url 'adminpanel:product_list' %}" class="btn btn-secondary">Back</a>
 </form>
-<a href="{% url 'adminpanel:product_list' %}">Back to Product List</a>
 {% endblock %}
