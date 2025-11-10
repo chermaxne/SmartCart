@@ -1,17 +1,28 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Product, Customer 
+from .models import Product, Customer, Category
 from django.contrib import messages
 from .forms import UserRegisterForm, CustomerForm
 from decimal import Decimal
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from django.contrib.auth import authenticate, login as auth_login
+from .ml_utils import get_category_predictor, get_product_recommender
 
 # -------------------------
 # Utility functions
 # -------------------------
 def _cart_dict(request):
     return request.session.setdefault('cart', {})  # keys: str(product_id) -> int(quantity)
+
+def cart_count(request):
+    """
+    Context processor to add cart count to all templates
+    """
+    cart = request.session.get('cart', {})
+    total_items = sum(int(qty) for qty in cart.values())
+    return {
+        'cart_count': total_items
+    }
 
 def _compute_totals(cart):
     subtotal = Decimal('0.00')
@@ -46,12 +57,89 @@ def buy_now(request, product_id):
 # Home and Product Views
 # -------------------------
 def home_view(request):
-    products = Product.objects.all()
-    return render(request, 'storefront/home.html', {'products': products})
+    """
+    Home page with personalized recommendations based on ML
+    - If user is logged in: show category-based recommendations using Decision Tree model
+    - Otherwise: show popular products
+    """
+    products = Product.objects.all()[:12]  # limit for performance
+    
+    # ML Integration: Category-based recommendations for logged-in users
+    recommended_products = None
+    predicted_category = None
+    
+    if request.user.is_authenticated and hasattr(request.user, 'customer'):
+        try:
+            predictor = get_category_predictor()
+            customer = request.user
+            
+            # Prepare customer data for prediction
+            customer_data = {
+                'age': customer.age or 30,
+                'household_size': customer.household_size or 2,
+                'has_children': 1 if customer.has_children else 0,
+                'monthly_income_sgd': float(customer.monthly_income_sgd or 5000),
+                'gender': customer.gender or 'Male',
+                'employment_status': customer.employment_status or 'Full-time',
+                'occupation': customer.occupation or 'Tech',
+                'education': customer.education or 'Bachelor',
+            }
+            
+            # Predict preferred category
+            predicted_category = predictor.predict_category(customer_data)
+            
+            # Get products from predicted category
+            try:
+                category = Category.objects.get(name__icontains=predicted_category)
+                recommended_products = Product.objects.filter(category=category).order_by('-rating')[:6]
+            except Category.DoesNotExist:
+                # Fallback to top-rated products
+                recommended_products = Product.objects.order_by('-rating')[:6]
+                
+        except Exception as e:
+            # Fallback on error
+            print(f"ML prediction error: {e}")
+            recommended_products = Product.objects.order_by('-rating')[:6]
+    else:
+        # For non-authenticated users, show popular products
+        recommended_products = Product.objects.order_by('-rating')[:6]
+    
+    return render(request, 'storefront/home.html', {
+        'products': products,
+        'recommended_products': recommended_products,
+        'predicted_category': predicted_category,
+    })
 
 def product_detail(request, id):
+    """
+    Product detail page with ML-powered "Frequently Bought Together" recommendations
+    Uses Association Rules model
+    """
     product = get_object_or_404(Product, id=id)
-    return render(request, 'storefront/product_detail.html', {'product': product})
+    
+    # ML Integration: Association Rules - Frequently Bought Together
+    related_products = []
+    try:
+        recommender = get_product_recommender()
+        recommended_skus = recommender.get_recommendations(
+            [product.sku],
+            metric='lift',
+            top_n=4
+        )
+        
+        if recommended_skus:
+            related_products = Product.objects.filter(sku__in=recommended_skus)[:4]
+    except Exception as e:
+        print(f"Association rules error: {e}")
+        # Fallback: same category products
+        related_products = Product.objects.filter(
+            category=product.category
+        ).exclude(id=product.id).order_by('-rating')[:4]
+    
+    return render(request, 'storefront/product_detail.html', {
+        'product': product,
+        'related_products': related_products,
+    })
 
 def products_list(request):
     search_query = request.GET.get('search', '').strip().lower()
@@ -144,10 +232,14 @@ def cart_remove(request, product_id):
     return redirect('storefront:cart')
 
 def cart_view(request):
-    """Display cart page"""
+    """
+    Display cart page with ML-powered recommendations
+    Uses Association Rules model for "You May Also Like" based on cart contents
+    """
     cart = _cart_dict(request)
     order_items = []
     subtotal = Decimal('0.00')
+    cart_skus = []
 
     for pid, qty in cart.items():
         try:
@@ -162,6 +254,7 @@ def cart_view(request):
             'quantity': int(qty),
             'total_price': total_price
         })
+        cart_skus.append(p.sku)
 
     shipping = Decimal('9.99') if subtotal > 0 else Decimal('0.00')
     tax = (subtotal * Decimal('0.08')).quantize(Decimal('0.01'))
@@ -172,7 +265,26 @@ def cart_view(request):
         discount = (subtotal * Decimal('0.1')).quantize(Decimal('0.01'))
         total -= discount
 
-    recommended_products = Product.objects.order_by('-rating')[:6]
+    # ML Integration: Association Rules - Smart recommendations based on cart
+    recommended_products = []
+    if cart_skus:
+        try:
+            recommender = get_product_recommender()
+            recommended_skus = recommender.get_recommendations(
+                cart_skus,
+                metric='confidence',  # use confidence for cart recommendations
+                top_n=6
+            )
+            
+            if recommended_skus:
+                recommended_products = Product.objects.filter(sku__in=recommended_skus)[:6]
+        except Exception as e:
+            print(f"Cart recommendations error: {e}")
+            # Fallback to popular products
+            recommended_products = Product.objects.order_by('-rating')[:6]
+    else:
+        # Empty cart - show popular products
+        recommended_products = Product.objects.order_by('-rating')[:6]
 
     return render(request, 'storefront/cart.html', {
         'order_items': order_items,
@@ -249,17 +361,54 @@ def checkout(request):
 # Auth & Customer
 # -------------------------
 def register(request):
+    """
+    User registration with ML-powered category prediction
+    After registration, predict preferred category and show personalized message
+    """
     if request.method == "POST":
         user_form = UserRegisterForm(request.POST)
         customer_form = CustomerForm(request.POST)
         if user_form.is_valid() and customer_form.is_valid():
             user = user_form.save(commit=False)
-            user.set_password(user_form.cleaned_data['password'])
+            user.set_password(user_form.cleaned_data['password1'])
             user.save()
             customer = customer_form.save(commit=False)
             customer.user = user
             customer.save()
-            messages.success(request, "Account created successfully!")
+            
+            # ML Integration: Predict preferred category for new customer
+            try:
+                predictor = get_category_predictor()
+                customer_data = {
+                    'age': customer.age or 30,
+                    'household_size': customer.household_size or 2,
+                    'has_children': 1 if customer.has_children else 0,
+                    'monthly_income_sgd': float(customer.monthly_income_sgd or 5000),
+                    'gender': customer.gender or 'Male',
+                    'employment_status': customer.employment_status or 'Full-time',
+                    'occupation': customer.occupation or 'Tech',
+                    'education': customer.education or 'Bachelor',
+                }
+                
+                predicted_category = predictor.predict_category(customer_data)
+                
+                # Save predicted category to customer profile
+                try:
+                    category = Category.objects.get(name__icontains=predicted_category)
+                    customer.preferred_category = category
+                    customer.save()
+                    
+                    messages.success(
+                        request, 
+                        f"Account created successfully! Based on your profile, you might like our {predicted_category} products."
+                    )
+                except Category.DoesNotExist:
+                    messages.success(request, "Account created successfully!")
+                    
+            except Exception as e:
+                print(f"Category prediction error during registration: {e}")
+                messages.success(request, "Account created successfully!")
+            
             return redirect('storefront:home')
     else:
         user_form = UserRegisterForm()
@@ -298,3 +447,95 @@ def login(request):
             return render(request, 'storefront/login.html', {'username': username})
 
     return render(request, 'storefront/login.html')
+
+# -------------------------
+# ML Model Showcase
+# -------------------------
+def ml_insights(request):
+    """
+    Showcase page for ML model insights
+    Shows personalized category prediction and product recommendations
+    """
+    insights = {}
+    
+    # Category prediction - only for authenticated users with customer profile
+    if request.user.is_authenticated and hasattr(request.user, 'customer'):
+        try:
+            customer = request.user
+            predictor = get_category_predictor()
+            
+            # Category Prediction Insights
+            customer_data = {
+                'age': customer.age or 30,
+                'household_size': customer.household_size or 2,
+                'has_children': 1 if customer.has_children else 0,
+                'monthly_income_sgd': float(customer.monthly_income_sgd or 5000),
+                'gender': customer.gender or 'Male',
+                'employment_status': customer.employment_status or 'Full-time',
+                'occupation': customer.occupation or 'Tech',
+                'education': customer.education or 'Bachelor',
+            }
+            
+            predicted_category = predictor.predict_category(customer_data)
+            
+            # Get products from predicted category
+            try:
+                category = Category.objects.get(name__icontains=predicted_category)
+                category_products = Product.objects.filter(category=category).order_by('-rating')[:8]
+            except Category.DoesNotExist:
+                category_products = []
+            
+            insights['predicted_category'] = predicted_category
+            insights['category_products'] = category_products
+            insights['customer_profile'] = customer_data
+                    
+        except Exception as e:
+            print(f"Category prediction error: {e}")
+    
+    # Association Rules - works for everyone with cart items (logged in or not)
+    try:
+        recommender = get_product_recommender()
+        cart = _cart_dict(request)
+        
+        print(f"DEBUG: Cart contents: {cart}")  # Debug line
+        
+        if cart:
+            cart_skus = []
+            cart_products = []
+            for pid in cart.keys():
+                try:
+                    p = Product.objects.get(id=int(pid))
+                    cart_skus.append(p.sku)
+                    cart_products.append(p)
+                    print(f"DEBUG: Added product {p.name} (SKU: {p.sku})")  # Debug line
+                except Product.DoesNotExist:
+                    print(f"DEBUG: Product {pid} not found")  # Debug line
+                    pass
+            
+            print(f"DEBUG: Cart SKUs: {cart_skus}")  # Debug line
+            
+            if cart_skus:
+                recommended_skus = recommender.get_recommendations(
+                    cart_skus,
+                    metric='lift',
+                    top_n=8
+                )
+                
+                print(f"DEBUG: Recommended SKUs: {recommended_skus}")  # Debug line
+                
+                association_recommendations = Product.objects.filter(sku__in=recommended_skus)[:8]
+                insights['cart_products'] = cart_products
+                insights['association_recommendations'] = association_recommendations
+                
+                print(f"DEBUG: Found {len(association_recommendations)} recommendations")  # Debug line
+            else:
+                print("DEBUG: No cart SKUs found")  # Debug line
+        else:
+            print("DEBUG: Cart is empty")  # Debug line
+    except Exception as e:
+        print(f"Association rules error: {e}")
+        import traceback
+        traceback.print_exc()  # Print full error traceback
+        insights['association_error'] = str(e)
+    
+    return render(request, 'storefront/ml_insights.html', {'insights': insights})

@@ -1014,7 +1014,7 @@
         <form method="POST" action="{% url 'storefront:cart_add' product.id %}" style="flex: 2;">
           {% csrf_token %}
           <input type="hidden" name="quantity" value="1" id="cart-quantity">
-          <button type="submit" class="add-to-cart-btn" onclick="cart_add()">
+          <button type="submit" class="add-to-cart-btn">
             <span>🛒</span> Add to Cart
           </button>
         </form>

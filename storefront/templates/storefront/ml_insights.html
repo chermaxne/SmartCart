@@ -1,0 +1,151 @@
+{% extends "storefront/base.html" %}
+{% load static %}
+
+{% block title %}AI Insights - SmartCart{% endblock %}
+
+{% block content %}
+<div class="ml-insights-container" style="max-width: 1200px; margin: 2rem auto; padding: 0 1rem;">
+    <div class="insights-header" style="text-align: center; margin-bottom: 3rem;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">🤖 AI-Powered Shopping Insights</h1>
+        <p style="color: #666; font-size: 1.1rem;">Personalized recommendations powered by machine learning</p>
+    </div>
+
+    <!-- Category Prediction Section - Only for logged in users -->
+    {% if user.is_authenticated and insights.predicted_category %}
+    <section class="insight-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.8rem; margin-bottom: 1rem;">
+            📊 Your Predicted Preferred Category
+        </h2>
+        <div style="font-size: 2.5rem; font-weight: bold; margin: 1rem 0;">
+            {{ insights.predicted_category }}
+        </div>
+        <p style="opacity: 0.9; margin-top: 1rem;">
+            Based on your profile (age: {{ insights.customer_profile.age }}, 
+            occupation: {{ insights.customer_profile.occupation }}, 
+            education: {{ insights.customer_profile.education }}), 
+            our AI predicts you'll love products in this category.
+        </p>
+    </section>
+
+    {% if insights.category_products %}
+    <section class="products-section" style="margin-bottom: 3rem;">
+        <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">
+            🎯 Personalized Products for You
+        </h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+            {% for product in insights.category_products %}
+            <div class="product-card" style="background: white; border-radius: 8px; padding: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s;">
+                <a href="{% url 'storefront:product_detail' product.id %}" style="text-decoration: none; color: inherit;">
+                    <div style="aspect-ratio: 1; background: #f5f5f5; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" style="max-width: 100%; max-height: 100%; border-radius: 6px;">
+                        {% else %}
+                        <span style="font-size: 3rem;">📦</span>
+                        {% endif %}
+                    </div>
+                    <h3 style="font-size: 0.95rem; margin-bottom: 0.5rem; min-height: 2.5rem;">{{ product.name|truncatechars:60 }}</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: bold; color: #667eea; font-size: 1.1rem;">${{ product.price }}</span>
+                        <span style="color: #f59e0b;">⭐ {{ product.rating }}</span>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    {% endif %}
+
+    <!-- Association Rules Section -->
+    {% if insights.cart_products %}
+    <section class="insight-card" style="background: #f0fdf4; border: 2px solid #86efac; padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.8rem; margin-bottom: 1rem; color: #065f46;">
+            🛒 Frequently Bought Together
+        </h2>
+        <p style="color: #065f46; margin-bottom: 1.5rem;">
+            Based on your cart items, customers also purchased these products:
+        </p>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <h3 style="font-size: 1.1rem; color: #065f46; margin-bottom: 0.5rem;">Your Cart Items:</h3>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                {% for product in insights.cart_products %}
+                <span style="background: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; border: 1px solid #86efac;">
+                    {{ product.name|truncatechars:30 }}
+                </span>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if insights.association_recommendations %}
+        <h3 style="font-size: 1.1rem; color: #065f46; margin-bottom: 1rem;">AI-Recommended Additions:</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+            {% for product in insights.association_recommendations %}
+            <div style="background: white; border-radius: 8px; padding: 1rem; border: 1px solid #86efac;">
+                <a href="{% url 'storefront:product_detail' product.id %}" style="text-decoration: none; color: inherit;">
+                    <div style="aspect-ratio: 1; background: #f5f5f5; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem;">
+                        {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" style="max-width: 100%; max-height: 100%; border-radius: 6px;">
+                        {% else %}
+                        <span style="font-size: 2rem;">📦</span>
+                        {% endif %}
+                    </div>
+                    <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">{{ product.name|truncatechars:40 }}</h4>
+                    <div style="font-weight: bold; color: #10b981;">${{ product.price }}</div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+    {% else %}
+    <section class="insight-card" style="background: #fef3c7; border: 2px solid #fbbf24; padding: 2rem; border-radius: 12px; margin-bottom: 2rem; text-align: center;">
+        <h2 style="color: #92400e; margin-bottom: 1rem;">💡 Add Items to Your Cart</h2>
+        <p style="color: #92400e;">Add some products to your cart to see AI-powered "Frequently Bought Together" recommendations!</p>
+        <a href="{% url 'storefront:home' %}" class="btn" style="margin-top: 1rem; display: inline-block; padding: 0.75rem 1.5rem; background: #fbbf24; color: #92400e; border-radius: 6px; text-decoration: none; font-weight: 600;">
+            Browse Products
+        </a>
+    </section>
+    {% endif %}
+
+    <!-- Model Information -->
+    <section class="model-info" style="background: #f8f9fa; padding: 2rem; border-radius: 12px; margin-top: 3rem;">
+        <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem; text-align: center;">🧠 About Our AI Models</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+            <div style="background: white; padding: 1.5rem; border-radius: 8px;">
+                <h3 style="color: #667eea; margin-bottom: 0.5rem;">Decision Tree Classifier</h3>
+                <p style="font-size: 0.95rem; color: #666;">
+                    Predicts your preferred product category based on your demographic profile including age, occupation, education, and household information.
+                </p>
+            </div>
+            <div style="background: white; padding: 1.5rem; border-radius: 8px;">
+                <h3 style="color: #10b981; margin-bottom: 0.5rem;">Association Rules Mining</h3>
+                <p style="font-size: 0.95rem; color: #666;">
+                    Discovers frequently bought together patterns from historical transaction data to suggest complementary products.
+                </p>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<style>
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-block;
+    font-weight: 600;
+    transition: transform 0.2s;
+}
+.btn-primary:hover {
+    transform: scale(1.05);
+}
+</style>
+{% endblock %}

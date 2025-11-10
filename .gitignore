@@ -15,3 +15,14 @@ ml_models/b2c_products_500_transactions_50k.joblib
 ml_models/b2c_customers_100.joblib
 ml_models/association_rules_mining.ipynb
 ml_models/decision_tree_classifier.ipynb
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# SQLite dev DB
+db.sqlite3
+

@@ -260,6 +260,7 @@
             {% endif %}
             <form method="POST" action="{% url 'storefront:cart_add' product.id %}" class="add-to-cart-form">
               {% csrf_token %}
+              <input type="hidden" name="quantity" value="1">
               <button type="submit" class="add-to-cart-btn">🛒 Add to Cart</button>
             </form>
           </div>

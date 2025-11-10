@@ -135,6 +135,41 @@
             border-left: 2px solid #e0e0e0;
         }
 
+        .user-menu a {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .user-menu a[href*="register"] {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+        }
+
+        .user-menu a[href*="register"]:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .user-menu a[href*="login"] {
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .user-menu a[href*="login"]:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .user-menu a[href*="logout"] {
+            color: #ef4444;
+            border: 2px solid #ef4444;
+        }
+
+        .user-menu a[href*="logout"]:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
         .user-avatar {
             width: 40px;
             height: 40px;
@@ -398,6 +433,118 @@
         .scroll-top.show {
             display: flex;
         }
+
+        /* Django Messages Styling */
+        .messages-container {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .alert {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease-out;
+            border-left: 4px solid;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .alert-success {
+            border-left-color: #10b981;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        }
+
+        .alert-error {
+            border-left-color: #ef4444;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        }
+
+        .alert-warning {
+            border-left-color: #f59e0b;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        }
+
+        .alert-info {
+            border-left-color: #3b82f6;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        }
+
+        .alert-icon {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .alert-success .alert-icon {
+            color: #10b981;
+        }
+
+        .alert-error .alert-icon {
+            color: #ef4444;
+        }
+
+        .alert-warning .alert-icon {
+            color: #f59e0b;
+        }
+
+        .alert-info .alert-icon {
+            color: #3b82f6;
+        }
+
+        .alert-message {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1f2937;
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .alert-close:hover {
+            background: rgba(0,0,0,0.1);
+            color: #1f2937;
+        }
+
+        @media (max-width: 768px) {
+            .messages-container {
+                top: 80px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
@@ -416,6 +563,9 @@
                 <a href="{% url 'storefront:home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
                     Home
                 </a>
+                <a href="{% url 'storefront:ml_insights' %}" class="{% if request.resolver_match.url_name == 'ml_insights' %}active{% endif %}">
+                    AI Insights
+                </a>
                 <a href="{% url 'storefront:cart' %}" class="cart-link {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
                     Cart
                     <span class="cart-badge">{{ cart_count|default:"0" }}</span>
@@ -425,21 +575,29 @@
                 </a>
                 
                 <div class="user-menu">
-                    {% if user.is_authenticated %}
-                        <div class="user-avatar" title="{{ user.username }}">
-                            {{ user.username|first|upper }}
-                        </div>
-                        <a href="{% url 'logout' %}">Logout</a>
-                    {% else %}
-                        <a href="{% url 'storefront:register' %}">Register</a>
-                        <a href="{% url 'storefront:login' %}">Login</a>
-                    {% endif %}
+                    <a href="{% url 'storefront:register' %}">Register</a>
+                    <a href="{% url 'storefront:login' %}">Login</a>
                 </div>
             </nav>
         </div>
     </header>
 
     <main>
+        <!-- Django Messages -->
+        {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                <span class="alert-icon">
+                    {% if message.tags == 'success' %}✓{% elif message.tags == 'error' %}✗{% elif message.tags == 'warning' %}⚠{% else %}ℹ{% endif %}
+                </span>
+                <span class="alert-message">{{ message }}</span>
+                <button class="alert-close" onclick="this.parentElement.remove()">×</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         {% block content %}
         {% endblock %}
     </main>
@@ -566,6 +724,33 @@
                 }
             });
         });
+
+        // Auto-dismiss messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.animation = 'slideOut 0.3s ease-out forwards';
+                    setTimeout(() => alert.remove(), 300);
+                }, 5000);
+            });
+        });
+
+        // Add slideOut animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
     
     {% block extra_js %}{% endblock %}
