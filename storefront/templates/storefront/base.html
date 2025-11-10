@@ -416,9 +416,6 @@
                 <a href="{% url 'storefront:home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
                     Home
                 </a>
-                <a href="{% url 'storefront:products_list' %}" class="{% if request.resolver_match.url_name == 'products_list' %}active{% endif %}">
-                    Products
-                </a>
                 <a href="{% url 'storefront:cart' %}" class="cart-link {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
                     Cart
                     <span class="cart-badge">{{ cart_count|default:"0" }}</span>
@@ -435,7 +432,7 @@
                         <a href="{% url 'logout' %}">Logout</a>
                     {% else %}
                         <a href="{% url 'storefront:register' %}">Register</a>
-                        <a href="{% url 'login' %}">Login</a>
+                        <a href="{% url 'storefront:login' %}">Login</a>
                     {% endif %}
                 </div>
             </nav>

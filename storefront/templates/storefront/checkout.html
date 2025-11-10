@@ -779,47 +779,6 @@
     }
     e.target.value = value;
   });
-
-  // Promo code
-  function applyPromo() {
-    const promoCode = document.getElementById('promoInput').value.toUpperCase();
-    
-    if (promoCode === 'SAVE10') {
-      const subtotalEl = document.getElementById('subtotal');
-      const subtotal = parseFloat(subtotalEl.textContent.replace('$', ''));
-      const discount = (subtotal * 0.1).toFixed(2);
-      
-      document.getElementById('discountRow').style.display = 'flex';
-      document.getElementById('discount').textContent = `-$${discount}`;
-      
-      const total = parseFloat(document.getElementById('total').textContent.replace('$', ''));
-      document.getElementById('total').textContent = `$${(total - discount).toFixed(2)}`;
-      
-      alert('Promo code applied! 10% discount');
-    } else if (promoCode) {
-      alert('Invalid promo code');
-    }
-  }
-
-  // Form submission
-  document.getElementById('checkoutForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    if (!document.getElementById('agreeTerms').checked) {
-      alert('Please agree to the Terms & Conditions');
-      return;
-    }
-    
-    // Show loading state
-    const submitBtn = document.querySelector('.btn-place-order');
-    submitBtn.textContent = 'Processing...';
-    submitBtn.disabled = true;
-    
-    // Simulate order processing
-    setTimeout(() => {
-      alert('Order placed successfully! 🎉');
-      // window.location.href = '/order-confirmation/';
-    }, 2000);
-  });
+  
 </script>
 {% endblock %}

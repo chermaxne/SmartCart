@@ -885,7 +885,6 @@
           <div class="thumbnail active" onclick="changeImage('{{ product.image.url }}', this)">
             <img src="{{ product.image.url }}" alt="{{ product.name }}">
           </div>
-          <!-- Add more thumbnails if you have multiple images -->
           <div class="thumbnail" onclick="changeImage('{{ product.image.url }}', this)">
             <img src="{{ product.image.url }}" alt="{{ product.name }}">
           </div>
@@ -1011,11 +1010,17 @@
       </div>
 
       <div class="action-buttons">
-        <button class="add-to-cart-btn" onclick="addToCart({{ product.id }})">
-          <span>🛒</span>
-          Add to Cart
-        </button>
-        <button class="buy-now-btn" onclick="buyNow()">
+        <!-- Add to Cart Form -->
+        <form method="POST" action="{% url 'storefront:cart_add' product.id %}" style="flex: 2;">
+          {% csrf_token %}
+          <input type="hidden" name="quantity" value="1" id="cart-quantity">
+          <button type="submit" class="add-to-cart-btn" onclick="cart_add()">
+            <span>🛒</span> Add to Cart
+          </button>
+        </form>
+
+        <!-- Buy Now Button (redirects to checkout) -->
+        <button type="button" class="buy-now-btn" onclick="buyNow()">
           Buy Now
         </button>
       </div>
@@ -1339,20 +1344,53 @@
 </div>
 
 <script>
-  let quantity = 1;
+  function changeImage(src, element) {
+    document.getElementById('mainImage').src = src;
+    document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
+    element.classList.add('active');
+  }
+
+  function switchTab(index) {
+    document.querySelectorAll('.tab-header').forEach(header => header.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    document.querySelectorAll('.tab-header')[index].classList.add('active');
+    document.getElementById(`tab-${index}`).classList.add('active');
+    
+    document.querySelector('.product-tabs').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 
   function incrementQty() {
-    if (quantity < 99) {
-      quantity++;
-      document.getElementById('quantity').value = quantity;
+    const input = document.getElementById('quantity');
+    const currentValue = parseInt(input.value);
+    if (currentValue < 99) {
+      input.value = currentValue + 1;
+      updateQuantityInputs();
     }
   }
 
   function decrementQty() {
-    if (quantity > 1) {
-      quantity--;
-      document.getElementById('quantity').value = quantity;
+    const input = document.getElementById('quantity');
+    const currentValue = parseInt(input.value);
+    if (currentValue > 1) {
+      input.value = currentValue - 1;
+      updateQuantityInputs();
     }
+  }
+
+  function updateQuantityInputs() {
+    const qty = document.getElementById('quantity').value;
+    document.getElementById('cart-quantity').value = qty;
+  }
+
+  function buyNow() {
+    window.location.href = "{% url 'storefront:checkout' %}";
+  }
+
+  function toggleWishlist() {
+    const btn = document.getElementById('wishlistBtn');
+    btn.classList.toggle('active');
+    btn.textContent = btn.classList.contains('active') ? '♥' : '♡';
   }
 
   function selectColor(element) {
@@ -1367,111 +1405,6 @@
     }
   }
 
-  function changeImage(src, element) {
-    document.getElementById('mainImage').src = src;
-    document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
-    element.classList.add('active');
-  }
-
-  function toggleWishlist() {
-    const btn = document.getElementById('wishlistBtn');
-    btn.classList.toggle('active');
-    
-    if (btn.classList.contains('active')) {
-      btn.textContent = '♥';
-      showToast('Added to wishlist');
-    } else {
-      btn.textContent = '♡';
-      showToast('Removed from wishlist');
-    }
-  }
-
-  function addToCart(productId) {
-    const qty = document.getElementById('quantity').value;
-    const selectedColor = document.querySelector('.color-option.active');
-    const selectedSize = document.querySelector('.size-option.active');
-
-    // Show loading state
-    const addBtn = document.querySelector('.add-to-cart-btn');
-    const originalText = addBtn.innerHTML;
-    addBtn.innerHTML = '<span>⏳</span> Adding...';
-    addBtn.disabled = true;
-
-    // Make AJAX call to add to cart
-    fetch(`/storefront/cart/add/${productId}/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken')
-      },
-      body: JSON.stringify({
-        quantity: qty,
-        color: selectedColor ? selectedColor.style.background : null,
-        size: selectedSize ? selectedSize.textContent : null
-      })
-    })
-    .then(response => response.json())
-    .then(data => {
-      showToast('Added to cart successfully! 🎉');
-      
-      // Update cart badge
-      const badge = document.querySelector('.cart-badge');
-      if (badge) {
-        badge.textContent = parseInt(badge.textContent) + parseInt(qty);
-      }
-      
-      // Reset button
-      setTimeout(() => {
-        addBtn.innerHTML = originalText;
-        addBtn.disabled = false;
-      }, 1000);
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      showToast('Failed to add to cart');
-      addBtn.innerHTML = originalText;
-      addBtn.disabled = false;
-    });
-  }
-
-  function buyNow() {
-    const productId = {{ product.id|default:"1" }};
-    addToCart(productId);
-    
-    setTimeout(() => {
-      window.location.href = '{% url "storefront:checkout" %}';
-    }, 1000);
-  }
-
-  function switchTab(index) {
-    // Remove active class from all tabs
-    document.querySelectorAll('.tab-header').forEach(header => header.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    
-    // Add active class to selected tab
-    document.querySelectorAll('.tab-header')[index].classList.add('active');
-    document.getElementById(`tab-${index}`).classList.add('active');
-    
-    // Smooth scroll to tabs section
-    document.querySelector('.product-tabs').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
-
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
-
-  // Image zoom on hover
   const mainImage = document.getElementById('mainImage');
   if (mainImage) {
     mainImage.addEventListener('mousemove', function(e) {
@@ -1487,10 +1420,10 @@
     });
   }
 
-  // Scroll to reviews when clicking on rating
   document.querySelector('.rating-text a')?.addEventListener('click', function(e) {
     e.preventDefault();
     switchTab(2);
   });
 </script>
 {% endblock %}
+
