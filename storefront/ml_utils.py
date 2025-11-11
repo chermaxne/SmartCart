@@ -5,6 +5,7 @@ Provides functions to load and use the pretrained ML models
 import os
 import joblib
 import pandas as pd
+import logging
 from django.conf import settings
 
 
@@ -123,6 +124,115 @@ class ProductRecommender:
         recommendations.difference_update(product_skus)
         
         return list(recommendations)[:top_n]
+
+
+# --- Notebook-style helper functions (convenience wrappers) ---
+def load_category_model(model_path=None):
+    """Load and return the category prediction model (joblib).
+
+    If model_path is None, uses the repo `ml_models/b2c_customers_100.joblib` path.
+    """
+    if model_path is None:
+        model_path = os.path.join(settings.BASE_DIR, 'ml_models', 'b2c_customers_100.joblib')
+    if not os.path.exists(model_path):
+        logging.error('Category model not found at %s', model_path)
+        raise FileNotFoundError(model_path)
+    return joblib.load(model_path)
+
+
+def predict_preferred_category(model_or_path, customer_data):
+    """
+    Notebook-style function to predict preferred category.
+
+    Args:
+        model_or_path: either a loaded model object (scikit-learn estimator) or a path to a .joblib file
+        customer_data: dict with same keys as CategoryPredictor.predict_category expects
+
+    Returns:
+        single prediction value (e.g., a string label)
+    """
+    # load model if path was provided
+    model = model_or_path
+    if isinstance(model_or_path, str):
+        model = load_category_model(model_or_path)
+
+    # Define the expected columns and dtypes (same as in CategoryPredictor)
+    columns = {
+        'age': 'int64', 'household_size': 'int64', 'has_children': 'int64',
+        'monthly_income_sgd': 'float64',
+        'gender_Female': 'bool', 'gender_Male': 'bool',
+        'employment_status_Full-time': 'bool', 'employment_status_Part-time': 'bool',
+        'employment_status_Retired': 'bool', 'employment_status_Self-employed': 'bool',
+        'employment_status_Student': 'bool',
+        'occupation_Admin': 'bool', 'occupation_Education': 'bool', 'occupation_Sales': 'bool',
+        'occupation_Service': 'bool', 'occupation_Skilled Trades': 'bool', 'occupation_Tech': 'bool',
+        'education_Bachelor': 'bool', 'education_Diploma': 'bool', 'education_Doctorate': 'bool',
+        'education_Master': 'bool', 'education_Secondary': 'bool'
+    }
+
+    # Build an empty DataFrame with expected dtypes
+    df_template = pd.DataFrame({col: pd.Series(dtype=dtype) for col, dtype in columns.items()})
+
+    # Prepare customer row and one-hot encode categorical fields
+    customer_df = pd.DataFrame([customer_data])
+    customer_encoded = pd.get_dummies(
+        customer_df, columns=['gender', 'employment_status', 'occupation', 'education']
+    )
+
+    # Fill missing columns from template
+    for col in df_template.columns:
+        if col not in customer_encoded.columns:
+            # for bool columns use False, otherwise 0
+            if df_template[col].dtype == 'bool':
+                customer_encoded[col] = False
+            else:
+                customer_encoded[col] = 0
+
+    # Reorder to match training
+    input_encoded = customer_encoded[df_template.columns]
+
+    # Predict using the provided model
+    pred = model.predict(input_encoded)
+    return pred[0]
+
+
+def load_rules_model(model_path=None):
+    """Load and return association rules DataFrame saved with joblib.
+    Default path is `ml_models/b2c_products_500_transactions_50k.joblib`.
+    """
+    if model_path is None:
+        model_path = os.path.join(settings.BASE_DIR, 'ml_models', 'b2c_products_500_transactions_50k.joblib')
+    if not os.path.exists(model_path):
+        logging.error('Rules model not found at %s', model_path)
+        raise FileNotFoundError(model_path)
+    return joblib.load(model_path)
+
+
+def get_recommendations(loaded_rules, items, metric='confidence', top_n=5):
+    """
+    Notebook-style function that mirrors the sample notebook.
+
+    Args:
+        loaded_rules: DataFrame of association rules (as in the sample joblib file)
+        items: list of item SKUs to base recommendations on
+        metric: metric to sort by (e.g., 'confidence' or 'lift')
+        top_n: number of recommendations to return
+
+    Returns:
+        list of recommended item SKUs
+    """
+    if loaded_rules is None:
+        return []
+
+    recommendations = set()
+    for item in items:
+        matched_rules = loaded_rules[loaded_rules['antecedents'].apply(lambda x: item in x)]
+        top_rules = matched_rules.sort_values(by=metric, ascending=False).head(top_n)
+        for _, row in top_rules.iterrows():
+            recommendations.update(row['consequents'])
+
+    recommendations.difference_update(items)
+    return list(recommendations)[:top_n]
 
 
 # Singleton instances

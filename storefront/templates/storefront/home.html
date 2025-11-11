@@ -133,6 +133,7 @@
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    line-clamp: 2;
     overflow: hidden;
   }
   
@@ -200,9 +201,89 @@
 
 {% block content %}
 <div class="hero-section">
+  {% if user.is_authenticated %}
+  <h1>Welcome back, {{ user.username }}! 👋</h1>
+  <p>Your personalized shopping experience awaits</p>
+  {% if predicted_category %}
+  <div style="margin-top: 25px; padding: 12px 20px; background: rgba(255,255,255,0.25); border-radius: 25px; display: inline-block; backdrop-filter: blur(10px);">
+    <span style="font-size: 15px; font-weight: 500;">🎯 We think you'll love <strong style="font-size: 17px;">{{ predicted_category }}</strong> products</span>
+  </div>
+  {% endif %}
+  {% else %}
   <h1>Welcome to Our Store</h1>
   <p>Discover amazing products at great prices</p>
+  {% endif %}
 </div>
+
+{% if user.is_authenticated and predicted_category and recommended_products %}
+<!-- Personalized Recommendations Banner -->
+<div class="container" style="margin-bottom: 40px;">
+  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px 30px; border-radius: 16px; color: white; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <div>
+        <h2 style="margin: 0 0 5px 0; font-size: 22px;">✨ Personalized Just For You</h2>
+        <p style="margin: 0; opacity: 0.9; font-size: 14px;">Based on your profile, here are some {{ predicted_category }} products we recommend</p>
+      </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+      {% for product in recommended_products|slice:":4" %}
+      <a href="{% url 'storefront:product_detail' id=product.id %}" style="text-decoration: none;">
+        <div style="background: white; border-radius: 10px; overflow: hidden; transition: transform 0.3s; cursor: pointer;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+          <div style="width: 100%; height: 150px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); display: flex; align-items: center; justify-content: center; font-size: 50px;">
+            {% if product.image %}
+              <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+              📦
+            {% endif %}
+          </div>
+          <div style="padding: 12px;">
+            <div style="font-size: 13px; color: #667eea; font-weight: 600; margin-bottom: 5px;">{{ product.category }}</div>
+            <div style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px; height: 40px; overflow: hidden;">{{ product.name|truncatewords:6 }}</div>
+            <div style="font-size: 18px; font-weight: 700; color: #667eea;">${{ product.price }}</div>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if user.is_authenticated and association_recommendations %}
+<!-- Association Rules Recommendations Banner -->
+<div class="container" style="margin-bottom: 40px;">
+  <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 25px 30px; border-radius: 16px; color: white; box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <div>
+        <h2 style="margin: 0 0 5px 0; font-size: 22px;">🔥 Frequently Bought Together</h2>
+        <p style="margin: 0; opacity: 0.9; font-size: 14px;">Customers who liked {{ predicted_category }} products also purchased these</p>
+      </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+      {% for product in association_recommendations %}
+      <a href="{% url 'storefront:product_detail' id=product.id %}" style="text-decoration: none;">
+        <div style="background: white; border-radius: 10px; overflow: hidden; transition: transform 0.3s; cursor: pointer;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+          <div style="width: 100%; height: 150px; background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%); display: flex; align-items: center; justify-content: center; font-size: 50px;">
+            {% if product.image %}
+              <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+              🎁
+            {% endif %}
+          </div>
+          <div style="padding: 12px;">
+            <div style="font-size: 13px; color: #f5576c; font-weight: 600; margin-bottom: 5px;">{{ product.category }}</div>
+            <div style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px; height: 40px; overflow: hidden;">{{ product.name|truncatewords:6 }}</div>
+            <div style="font-size: 18px; font-weight: 700; color: #f5576c;">${{ product.price }}</div>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
 
 <div class="container">
   <div class="filters-section">

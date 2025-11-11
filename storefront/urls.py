@@ -16,6 +16,6 @@ urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
     path('register/', views.register, name='register'),
     path('ml-insights/', views.ml_insights, name='ml_insights'),
-    path('accounts/login/', auth_views.LoginView.as_view(template_name='storefront/login.html'), name='login'),
-    path('accounts/logout/', auth_views.LogoutView.as_view(next_page='storefront:home'), name='logout'),
+    path('accounts/login/', views.login, name='login'),
+    path('accounts/logout/', views.logout_view, name='logout'),
 ]

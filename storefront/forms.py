@@ -58,8 +58,7 @@ class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
         fields = [
-            "age", "gender", "employment", "income_range",
-            "employment_status", "occupation", "education",
+            "age", "gender", "employment_status", "occupation", "education",
             "household_size", "has_children", "monthly_income_sgd",
         ]
         widgets = {
@@ -67,3 +66,9 @@ class CustomerForm(forms.ModelForm):
             'household_size': forms.NumberInput(attrs={'min': 1, 'max': 10}),
             'monthly_income_sgd': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make all fields optional for registration
+        for field in self.fields:
+            self.fields[field].required = False

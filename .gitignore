@@ -11,10 +11,8 @@ proj info/data/b2c_products_500.csv
 proj info/asset/AuroraMart Logo.png
 proj info/data/b2c_products_500_transactions_50k.csv
 proj info/data/b2c_customers_100.csv
-ml_models/b2c_products_500_transactions_50k.joblib
-ml_models/b2c_customers_100.joblib
-ml_models/association_rules_mining.ipynb
-ml_models/decision_tree_classifier.ipynb
+ml_models
+predictions_sample_code
 
 # macOS
 .DS_Store
@@ -25,4 +23,3 @@ __pycache__/
 
 # SQLite dev DB
 db.sqlite3
-
