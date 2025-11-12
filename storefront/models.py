@@ -29,6 +29,17 @@ class Customer(AbstractUser):
     has_children = models.BooleanField(default=False)
     monthly_income_sgd = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=None)
     preferred_category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    @property
+    def full_name(self):
+        """Return full name or username if name not available"""
+        if self.first_name or self.last_name:
+            return f"{self.first_name} {self.last_name}".strip()
+        return self.username
+    
+    @property
+    def display_name(self):
+        return self.full_name
 
 class Product(models.Model):
     sku = models.CharField(max_length=40, unique=True, db_index=True)  # maps "SKU code"
@@ -41,6 +52,9 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)       # maps "Unit price"
     rating = models.FloatField(default=0)                              # maps "Product rating"
     image = models.ImageField(upload_to='products/', blank=True, null=True, default='products/default-product.png')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
         ordering = ['-id']
@@ -49,6 +63,11 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.sku})"
+    
+    @property
+    def is_low_stock(self):
+        """Check if product is below reorder threshold"""
+        return self.stock <= self.reorder_threshold
 
 class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)

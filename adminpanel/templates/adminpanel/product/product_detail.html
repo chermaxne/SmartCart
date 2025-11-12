@@ -1,0 +1,503 @@
+{% extends "adminpanel/base.html" %}
+
+{% block title %}{{ product.name }}{% endblock %}
+{% block page_title %}Product Details{% endblock %}
+
+{% block extra_css %}
+<style>
+    .breadcrumb {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 24px;
+        font-size: 14px;
+        color: #64748b;
+    }
+
+    .breadcrumb a {
+        color: #64748b;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .breadcrumb a:hover {
+        color: #0f172a;
+    }
+
+    .breadcrumb i {
+        font-size: 12px;
+    }
+
+    .product-header {
+        background: white;
+        border-radius: 12px;
+        padding: 24px 32px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .product-title-section h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 8px;
+    }
+
+    .product-meta {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .product-meta i {
+        color: #10b981;
+    }
+
+    .product-meta .divider {
+        color: #e2e8f0;
+    }
+
+    .product-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background: #0f172a;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #1e293b;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(15,23,42,0.2);
+    }
+
+    .btn-secondary {
+        background: white;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Product Image Card */
+    .image-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+        height: fit-content;
+    }
+
+    .product-image-container {
+        width: 100%;
+        height: 300px;
+        background: #f8fafc;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+        overflow: hidden;
+    }
+
+    .product-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .product-image-container i {
+        font-size: 64px;
+        color: #e2e8f0;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 13px;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .status-badge.active {
+        background: #ecfdf5;
+        color: #065f46;
+    }
+
+    .status-badge.inactive {
+        background: #fef2f2;
+        color: #991b1b;
+    }
+
+    .status-badge i {
+        font-size: 10px;
+    }
+
+    /* Product Details Card */
+    .details-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+    }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .section-title i {
+        color: #10b981;
+        font-size: 20px;
+    }
+
+    .detail-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .detail-label i {
+        width: 20px;
+        text-align: center;
+        font-size: 14px;
+        color: #10b981;
+    }
+
+    .detail-value {
+        font-size: 15px;
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .detail-value.price {
+        font-size: 20px;
+        color: #10b981;
+    }
+
+    .detail-value.highlight {
+        background: #f8fafc;
+        padding: 6px 12px;
+        border-radius: 6px;
+    }
+
+    .stock-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .stock-indicator.good {
+        background: #ecfdf5;
+        color: #065f46;
+    }
+
+    .stock-indicator.low {
+        background: #fffbeb;
+        color: #92400e;
+    }
+
+    .stock-indicator.critical {
+        background: #fef2f2;
+        color: #991b1b;
+    }
+
+    .stock-indicator i {
+        font-size: 10px;
+    }
+
+    .description-section {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 2px solid #e2e8f0;
+    }
+
+    .description-text {
+        color: #64748b;
+        line-height: 1.6;
+        font-size: 14px;
+    }
+
+    .alert-box {
+        background: #fffbeb;
+        border-left: 4px solid #f59e0b;
+        padding: 16px;
+        border-radius: 8px;
+        margin-top: 20px;
+        display: flex;
+        gap: 12px;
+        align-items: start;
+    }
+
+    .alert-box i {
+        color: #f59e0b;
+        font-size: 20px;
+        margin-top: 2px;
+    }
+
+    .alert-content h4 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #92400e;
+        margin-bottom: 4px;
+    }
+
+    .alert-content p {
+        font-size: 13px;
+        color: #92400e;
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <a href="{% url 'adminpanel:dashboard' %}">Dashboard</a>
+    <i class="fas fa-chevron-right"></i>
+    <a href="{% url 'adminpanel:product_list' %}">Products</a>
+    <i class="fas fa-chevron-right"></i>
+    <span>{{ product.name }}</span>
+</div>
+
+<!-- Product Header -->
+<div class="product-header">
+    <div class="product-title-section">
+        <h1>{{ product.name }}</h1>
+        <div class="product-meta">
+            <span><i class="fas fa-barcode"></i> SKU: {{ product.sku }}</span>
+            <span class="divider">|</span>
+            <span><i class="fas fa-folder"></i> {{ product.category.name }}</span>
+        </div>
+    </div>
+    <div class="product-actions">
+        <a href="{% url 'adminpanel:product_edit' product.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit Product
+        </a>
+        <a href="{% url 'adminpanel:product_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<!-- Content Grid -->
+<div class="content-grid">
+    <!-- Image Card -->
+    <div class="image-card">
+        <div class="product-image-container">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+            {% else %}
+                <i class="fas fa-image"></i>
+            {% endif %}
+        </div>
+        <div class="status-badge {% if product.is_active %}active{% else %}inactive{% endif %}">
+            <i class="fas fa-circle"></i>
+            {% if product.is_active %}Active{% else %}Inactive{% endif %}
+        </div>
+    </div>
+
+    <!-- Details Card -->
+    <div class="details-card">
+        <!-- Pricing & Stock Section -->
+        <div class="section-title">
+            <i class="fas fa-dollar-sign"></i>
+            Pricing & Stock
+        </div>
+        
+        <ul class="detail-list">
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-tag"></i>
+                    Price
+                </span>
+                <span class="detail-value price">${{ product.price }}</span>
+            </li>
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-boxes"></i>
+                    Stock Level
+                </span>
+                <span class="detail-value">
+                    {% if product.stock == 0 %}
+                        <span class="stock-indicator critical">
+                            <i class="fas fa-circle"></i>
+                            Out of Stock
+                        </span>
+                    {% elif product.is_low_stock %}
+                        <span class="stock-indicator low">
+                            <i class="fas fa-circle"></i>
+                            {{ product.stock }} units (Low Stock)
+                        </span>
+                    {% else %}
+                        <span class="stock-indicator good">
+                            <i class="fas fa-circle"></i>
+                            {{ product.stock }} units
+                        </span>
+                    {% endif %}
+                </span>
+            </li>
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-redo"></i>
+                    Reorder Threshold
+                </span>
+                <span class="detail-value">{{ product.reorder_threshold }} units</span>
+            </li>
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-star"></i>
+                    Rating
+                </span>
+                <span class="detail-value">{{ product.rating|floatformat:1 }} / 5.0</span>
+            </li>
+        </ul>
+
+        <!-- Product Information Section -->
+        <div class="section-title" style="margin-top: 32px;">
+            <i class="fas fa-info-circle"></i>
+            Product Information
+        </div>
+        
+        <ul class="detail-list">
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-folder-open"></i>
+                    Category
+                </span>
+                <span class="detail-value highlight">{{ product.category.name }}</span>
+            </li>
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-barcode"></i>
+                    SKU Code
+                </span>
+                <span class="detail-value">{{ product.sku }}</span>
+            </li>
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-calendar-plus"></i>
+                    Date Added
+                </span>
+                <span class="detail-value">
+                    {% if product.created_at %}
+                        {{ product.created_at|date:"F j, Y" }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </span>
+            </li>
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-clock"></i>
+                    Last Updated
+                </span>
+                <span class="detail-value">
+                    {% if product.updated_at %}
+                        {{ product.updated_at|date:"F j, Y" }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </span>
+            </li>
+        </ul>
+
+        <!-- Description Section -->
+        {% if product.description %}
+        <div class="description-section">
+            <div class="section-title">
+                <i class="fas fa-align-left"></i>
+                Description
+            </div>
+            <p class="description-text">{{ product.description }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Low Stock Alert -->
+        {% if product.is_low_stock %}
+        <div class="alert-box">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div class="alert-content">
+                <h4>Low Stock Alert</h4>
+                <p>This product is running low on stock. Consider reordering soon to avoid stockouts.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

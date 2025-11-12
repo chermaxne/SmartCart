@@ -1,0 +1,301 @@
+{% extends "adminpanel/base.html" %}
+
+{% block title %}{% if is_edit %}Edit Product{% else %}Add Product{% endif %}{% endblock %}
+{% block page_title %}{% if is_edit %}Edit Product{% else %}Add New Product{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 900px;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .form-grid.full {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #0f172a;
+        font-size: 14px;
+    }
+
+    .form-group label .required {
+        color: #dc2626;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        font-family: inherit;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #64748b;
+        box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.1);
+    }
+
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 0;
+    }
+
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+
+    .form-check label {
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .btn {
+        padding: 12px 28px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: #0f172a;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #1e293b;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(15,23,42,0.2);
+    }
+
+    .btn-secondary {
+        background: white;
+        color: #64748b;
+        border: 2px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
+    .error-message {
+        color: #dc2626;
+        font-size: 13px;
+        margin-top: 6px;
+    }
+
+    .help-text {
+        font-size: 13px;
+        color: #64748b;
+        margin-top: 6px;
+    }
+
+    .section-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-card">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="section-title">
+                <i class="fas fa-info-circle"></i> Basic Information
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.sku.id_for_label }}">
+                        SKU <span class="required">*</span>
+                    </label>
+                    {{ form.sku }}
+                    {% if form.sku.errors %}
+                        <div class="error-message">{{ form.sku.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.category.id_for_label }}">
+                        Category <span class="required">*</span>
+                    </label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                        <div class="error-message">{{ form.category.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-grid full">
+                <div class="form-group">
+                    <label for="{{ form.name.id_for_label }}">
+                        Product Name <span class="required">*</span>
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="error-message">{{ form.name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-grid full">
+                <div class="form-group">
+                    <label for="{{ form.description.id_for_label }}">
+                        Description
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="error-message">{{ form.description.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.subcategory.id_for_label }}">
+                        Subcategory
+                    </label>
+                    {{ form.subcategory }}
+                    {% if form.subcategory.errors %}
+                        <div class="error-message">{{ form.subcategory.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.image.id_for_label }}">
+                        Product Image
+                    </label>
+                    {{ form.image }}
+                    {% if form.image.errors %}
+                        <div class="error-message">{{ form.image.errors.0 }}</div>
+                    {% endif %}
+                    {% if is_edit and product.image %}
+                        <div class="help-text">Current: {{ product.image.name }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="section-title" style="margin-top: 32px;">
+                <i class="fas fa-dollar-sign"></i> Pricing & Stock
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.price.id_for_label }}">
+                        Price (SGD) <span class="required">*</span>
+                    </label>
+                    {{ form.price }}
+                    {% if form.price.errors %}
+                        <div class="error-message">{{ form.price.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.rating.id_for_label }}">
+                        Rating (0-5)
+                    </label>
+                    {{ form.rating }}
+                    {% if form.rating.errors %}
+                        <div class="error-message">{{ form.rating.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.stock.id_for_label }}">
+                        Stock Quantity <span class="required">*</span>
+                    </label>
+                    {{ form.stock }}
+                    {% if form.stock.errors %}
+                        <div class="error-message">{{ form.stock.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.reorder_threshold.id_for_label }}">
+                        Reorder Threshold
+                    </label>
+                    {{ form.reorder_threshold }}
+                    {% if form.reorder_threshold.errors %}
+                        <div class="error-message">{{ form.reorder_threshold.errors.0 }}</div>
+                    {% endif %}
+                    <div class="help-text">Alert when stock falls below this level</div>
+                </div>
+            </div>
+
+            <div class="form-grid full">
+                <div class="form-check">
+                    {{ form.is_active }}
+                    <label for="{{ form.is_active.id_for_label }}">
+                        Product is active and visible in store
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% if is_edit %}{% url 'adminpanel:product_detail' product.pk %}{% else %}{% url 'adminpanel:product_list' %}{% endif %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    {% if is_edit %}Update Product{% else %}Add Product{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

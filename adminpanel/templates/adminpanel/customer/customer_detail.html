@@ -1,0 +1,541 @@
+{% extends "adminpanel/base.html" %}
+
+{% block title %}{{ customer.full_name }}{% endblock %}
+{% block page_title %}Customer Details{% endblock %}
+
+{% block extra_css %}
+<style>
+    .breadcrumb {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 24px;
+        font-size: 14px;
+        color: #64748b;
+    }
+
+    .breadcrumb a {
+        color: #64748b;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .breadcrumb a:hover {
+        color: #0f172a;
+    }
+
+    .breadcrumb i {
+        font-size: 12px;
+    }
+
+    .customer-header {
+        background: white;
+        border-radius: 12px;
+        padding: 24px 32px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .customer-title-section h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 8px;
+    }
+
+    .customer-meta {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        font-size: 14px;
+        color: #64748b;
+    }
+
+    .customer-meta span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .customer-meta i {
+        color: #8b5cf6;
+    }
+
+    .customer-meta .divider {
+        color: #cbd5e1;
+    }
+
+    .customer-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #2563eb;
+    }
+
+    .btn-secondary {
+        background: white;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+        background: #f8fafc;
+        color: #0f172a;
+        border-color: #cbd5e1;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .profile-card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        text-align: center;
+    }
+
+    .customer-avatar-large {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 48px;
+        margin: 0 auto 20px;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .customer-name {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 8px;
+    }
+
+    .customer-email {
+        color: #6b7280;
+        font-size: 15px;
+        margin-bottom: 20px;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    .status-active {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .quick-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .quick-stat {
+        text-align: center;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 10px;
+    }
+
+    .quick-stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 4px;
+    }
+
+    .quick-stat-label {
+        font-size: 12px;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    /* Image Card Styles */
+    .image-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+        height: fit-content;
+        text-align: center;
+    }
+
+    .customer-avatar-container {
+        width: 250px;
+        height: 250px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        font-size: 96px;
+        font-weight: 700;
+        color: white;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .status-badge.active {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-badge.inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-badge i {
+        font-size: 8px;
+    }
+
+    /* Details Card Styles */
+    .details-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #0f172a;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .section-title i {
+        color: #8b5cf6;
+        font-size: 20px;
+    }
+
+    .detail-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        font-weight: 500;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+    }
+
+    .detail-label i {
+        color: #8b5cf6;
+        width: 20px;
+        text-align: center;
+    }
+
+    .detail-value {
+        font-weight: 600;
+        color: #0f172a;
+        font-size: 14px;
+    }
+
+    /* Badge Styles */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .badge-primary {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .badge-secondary {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+    <a href="{% url 'adminpanel:dashboard' %}">Dashboard</a>
+    <i class="fas fa-chevron-right"></i>
+    <a href="{% url 'adminpanel:customer_list' %}">Customers</a>
+    <i class="fas fa-chevron-right"></i>
+    <span>{{ customer.full_name }}</span>
+</div>
+
+<!-- Customer Header -->
+<div class="customer-header">
+    <div class="customer-title-section">
+        <h1>{{ customer.full_name }}</h1>
+        <div class="customer-meta">
+            <span><i class="fas fa-envelope"></i> {{ customer.email }}</span>
+            {% if customer.phone %}
+            <span class="divider">|</span>
+            <span><i class="fas fa-phone"></i> {{ customer.phone }}</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="customer-actions">
+        <a href="{% url 'adminpanel:customer_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<!-- Content Grid -->
+<div class="content-grid">
+    <!-- Avatar Card -->
+    <div class="image-card">
+        <div class="customer-avatar-container">
+            {{ customer.full_name|slice:":1"|upper }}
+        </div>
+        <div class="status-badge {% if customer.is_active %}active{% else %}inactive{% endif %}">
+            <i class="fas fa-circle"></i>
+            {% if customer.is_active %}Active{% else %}Inactive{% endif %}
+        </div>
+
+        <div class="quick-stats">
+            <div class="quick-stat">
+                <div class="quick-stat-value">{{ customer.age }}</div>
+                <div class="quick-stat-label">Years Old</div>
+            </div>
+            <div class="quick-stat">
+                <div class="quick-stat-value">{{ customer.household_size }}</div>
+                <div class="quick-stat-label">Household</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Card -->
+    <div class="details-card">
+        <!-- Personal Information Section -->
+        <div class="section-title">
+            <i class="fas fa-user"></i>
+            Personal Information
+        </div>
+        
+        <ul class="detail-list">
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-id-card"></i>
+                    Username
+                </span>
+                <span class="detail-value">{{ customer.username }}</span>
+            </li>
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-calendar"></i>
+                    Age
+                </span>
+                <span class="detail-value">{{ customer.age }} years</span>
+            </li>
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-venus-mars"></i>
+                    Gender
+                </span>
+                <span class="detail-value">
+                    <span class="badge badge-secondary">{{ customer.gender }}</span>
+                </span>
+            </li>
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-graduation-cap"></i>
+                    Education
+                </span>
+                <span class="detail-value">
+                    <span class="badge badge-primary">{{ customer.education }}</span>
+                </span>
+            </li>
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-calendar-plus"></i>
+                    Registered
+                </span>
+                <span class="detail-value">{{ customer.registration_date|date:"F j, Y" }}</span>
+            </li>
+        </ul>
+
+        <!-- Employment & Income Section -->
+        <div class="section-title" style="margin-top: 32px;">
+            <i class="fas fa-briefcase"></i>
+            Employment & Income
+        </div>
+        
+        <ul class="detail-list">
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-building"></i>
+                    Employment Status
+                </span>
+                <span class="detail-value">
+                    <span class="badge badge-success">{{ customer.employment_status }}</span>
+                </span>
+            </li>
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-user-tie"></i>
+                    Occupation
+                </span>
+                <span class="detail-value">{{ customer.occupation }}</span>
+            </li>
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-dollar-sign"></i>
+                    Monthly Income
+                </span>
+                <span class="detail-value highlight">${{ customer.monthly_income_sgd|floatformat:2 }} SGD</span>
+            </li>
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-chart-line"></i>
+                    Income Range
+                </span>
+                <span class="detail-value">
+                    {% if customer.monthly_income_sgd < 3000 %}
+                        <span class="badge badge-warning">Low Income</span>
+                    {% elif customer.monthly_income_sgd < 8000 %}
+                        <span class="badge badge-primary">Medium Income</span>
+                    {% else %}
+                        <span class="badge badge-success">High Income</span>
+                    {% endif %}
+                </span>
+            </li>
+        </ul>
+
+        <!-- Household Information Section -->
+        <div class="section-title" style="margin-top: 32px;">
+            <i class="fas fa-home"></i>
+            Household Information
+        </div>
+        
+        <ul class="detail-list">
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-users"></i>
+                    Household Size
+                </span>
+                <span class="detail-value">{{ customer.household_size }} member{{ customer.household_size|pluralize }}</span>
+            </li>
+            <li class="detail-item">
+                <span class="detail-label">
+                    <i class="fas fa-child"></i>
+                    Has Children
+                </span>
+                <span class="detail-value">
+                    {% if customer.has_children %}
+                        <span class="badge badge-success">Yes</span>
+                    {% else %}
+                        <span class="badge badge-secondary">No</span>
+                    {% endif %}
+                </span>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

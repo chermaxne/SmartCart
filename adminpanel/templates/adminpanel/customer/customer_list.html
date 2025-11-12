@@ -1,0 +1,387 @@
+{% extends "adminpanel/base.html" %}
+
+{% block title %}Customers{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+        font-size: 32px;
+        font-weight: 700;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-header h1 i {
+        color: #8b5cf6;
+    }
+
+    .search-bar {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .search-form {
+        display: flex;
+        gap: 15px;
+        align-items: end;
+    }
+
+    .search-input {
+        flex: 1;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 18px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .customers-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead {
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    }
+
+    thead th {
+        padding: 15px 20px;
+        text-align: left;
+        font-weight: 700;
+        color: #374151;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    tbody tr {
+        border-bottom: 1px solid #f3f4f6;
+        transition: background 0.2s ease;
+    }
+
+    tbody tr:hover {
+        background: #f9fafb;
+    }
+
+    tbody td {
+        padding: 18px 20px;
+        color: #374151;
+        font-size: 14px;
+    }
+
+    .customer-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .customer-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .customer-details h4 {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 3px;
+    }
+
+    .customer-details p {
+        font-size: 13px;
+        color: #6b7280;
+        margin: 0;
+    }
+
+    .badge {
+        padding: 5px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-secondary {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .badge-info {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .btn-icon {
+        padding: 6px 12px;
+        font-size: 13px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        display: inline-block;
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .btn-icon:hover {
+        background: #bfdbfe;
+        transform: translateY(-2px);
+    }
+
+    .btn-view {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .btn-view:hover {
+        background: #bfdbfe;
+        transform: translateY(-2px);
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-top: 30px;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .pagination a, .pagination span {
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.2s ease;
+    }
+
+    .pagination a {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .pagination a:hover {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .pagination .current {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .pagination .disabled {
+        background: #f9fafb;
+        color: #d1d5db;
+        cursor: not-allowed;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-state h3 {
+        font-size: 24px;
+        color: #374151;
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        color: #6b7280;
+        font-size: 16px;
+    }
+
+    .results-info {
+        padding: 15px 20px;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 14px;
+        color: #6b7280;
+        font-weight: 500;
+    }
+
+    .demographic-badges {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-users"></i> Customers</h1>
+</div>
+
+<div class="search-bar">
+    <form method="GET" action="{% url 'adminpanel:customer_list' %}" class="search-form">
+        <div class="search-input">
+            <input type="text" name="search" class="form-control" 
+                   placeholder="🔍 Search by name or email..." 
+                   value="{{ search_query }}">
+        </div>
+        <button type="submit" class="btn btn-primary">Search</button>
+        {% if search_query %}
+        <a href="{% url 'adminpanel:customer_list' %}" class="btn btn-secondary">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+{% if page_obj %}
+<div class="customers-table">
+    <div class="results-info">
+        Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} customers
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Customer</th>
+                <th>Demographics</th>
+                <th>Employment</th>
+                <th>Income</th>
+                <th>Household</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in page_obj %}
+            <tr>
+                <td>
+                    <div class="customer-info">
+                        <div class="customer-avatar">
+                            {{ customer.full_name|slice:":1"|upper }}
+                        </div>
+                        <div class="customer-details">
+                            <h4>{{ customer.full_name }}</h4>
+                            <p>{{ customer.email }}</p>
+                            {% if customer.phone %}
+                            <p><i class="fas fa-phone"></i> {{ customer.phone }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="demographic-badges">
+                        <span class="badge badge-info">{{ customer.age }} yrs</span>
+                        <span class="badge badge-secondary">{{ customer.gender }}</span>
+                        <span class="badge badge-secondary">{{ customer.education }}</span>
+                    </div>
+                </td>
+                <td>
+                    <div>{{ customer.employment_status }}</div>
+                    <small style="color: #6b7280;">{{ customer.occupation }}</small>
+                </td>
+                <td>
+                    <strong style="color: #10b981;">${{ customer.monthly_income_sgd|floatformat:0 }}</strong>
+                    <small style="color: #6b7280; display: block;">monthly</small>
+                </td>
+                <td>
+                    <div>{{ customer.household_size }} member{{ customer.household_size|pluralize }}</div>
+                    {% if customer.has_children %}
+                    <span class="badge badge-warning">Has Children</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'adminpanel:customer_detail' customer.pk %}" class="btn-icon btn-view" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if page_obj.has_other_pages %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}">« First</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">‹ Previous</a>
+    {% else %}
+        <span class="disabled">« First</span>
+        <span class="disabled">‹ Previous</span>
+    {% endif %}
+
+    <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Next ›</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}">Last »</a>
+    {% else %}
+        <span class="disabled">Next ›</span>
+        <span class="disabled">Last »</span>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">👥</div>
+    <h3>No Customers Found</h3>
+    <p>{% if search_query %}Try adjusting your search query{% else %}No customers registered yet{% endif %}</p>
+</div>
+{% endif %}
+{% endblock %}

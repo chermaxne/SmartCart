@@ -1,51 +1,414 @@
 {% extends "adminpanel/base.html" %}
+
 {% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 28px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border-color: #cbd5e1;
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 16px;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        background: #f1f5f9;
+    }
+
+    /* Colored Icons for Dashboard */
+    .stat-card:nth-child(1) .stat-icon {
+        background: #eff6ff;
+        color: #3b82f6;
+    }
+
+    .stat-card:nth-child(2) .stat-icon {
+        background: #f0fdf4;
+        color: #10b981;
+    }
+
+    .stat-card:nth-child(3) .stat-icon {
+        background: #fffbeb;
+        color: #f59e0b;
+    }
+
+    .stat-card:nth-child(4) .stat-icon {
+        background: #faf5ff;
+        color: #8b5cf6;
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+
+    .stat-value {
+        font-size: 36px;
+        font-weight: 700;
+        color: #0f172a;
+        line-height: 1;
+    }
+
+    .stat-footer {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .stat-link {
+        font-size: 13px;
+        font-weight: 600;
+        color: #64748b;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+    }
+
+    .stat-link:hover {
+        color: #0f172a;
+        gap: 10px;
+    }
+
+    /* Content Grid */
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .section-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title i {
+        color: #64748b;
+    }
+
+    /* Low Stock Items */
+    .stock-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        border-radius: 12px;
+        background: #f8fafc;
+        margin-bottom: 12px;
+        transition: all 0.2s ease;
+    }
+
+    .stock-item:hover {
+        background: #f1f5f9;
+    }
+
+    .stock-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .stock-info {
+        flex: 1;
+    }
+
+    .stock-name {
+        font-weight: 600;
+        color: #0f172a;
+        margin-bottom: 4px;
+    }
+
+    .stock-category {
+        font-size: 13px;
+        color: #64748b;
+    }
+
+    .stock-badge {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .stock-badge.critical {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+
+    .stock-badge.low {
+        background: #fffbeb;
+        color: #d97706;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 48px 24px;
+        color: #64748b;
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.3;
+    }
+
+    /* Category Stats */
+    .category-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        border-radius: 12px;
+        background: #f8fafc;
+        margin-bottom: 12px;
+        transition: all 0.2s ease;
+    }
+
+    .category-item:hover {
+        background: #f1f5f9;
+    }
+
+    .category-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .category-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        font-weight: 700;
+        font-size: 18px;
+    }
+
+    .category-info {
+        flex: 1;
+    }
+
+    .category-name {
+        font-weight: 600;
+        color: #0f172a;
+        margin-bottom: 4px;
+    }
+
+    .category-count {
+        font-size: 24px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .category-label {
+        font-size: 12px;
+        color: #64748b;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<h2>Dashboard</h2>
-<div class="row text-center">
-  <div class="col-md-4">
-    <div class="card shadow-sm p-3">
-      <h4>Total Revenue</h4>
-      <p class="fw-bold">${{ total_revenue|floatformat:2 }}</p>
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-content">
+                <div class="stat-label">Total Products</div>
+                <div class="stat-value">{{ total_products }}</div>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-box"></i>
+            </div>
+        </div>
+        <div class="stat-footer">
+            <a href="{% url 'adminpanel:product_list' %}" class="stat-link">
+                View all products <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
     </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card shadow-sm p-3">
-      <h4>Total Orders</h4>
-      <p class="fw-bold">{{ total_orders }}</p>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-content">
+                <div class="stat-label">Total Customers</div>
+                <div class="stat-value">{{ total_customers }}</div>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+        <div class="stat-footer">
+            <a href="{% url 'adminpanel:customer_list' %}" class="stat-link">
+                View all customers <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
     </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card shadow-sm p-3">
-      <h4>Total Customers</h4>
-      <p class="fw-bold">{{ total_customers }}</p>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-content">
+                <div class="stat-label">Low Stock Items</div>
+                <div class="stat-value">{{ low_stock_count }}</div>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+        </div>
+        <div class="stat-footer">
+            <a href="{% url 'adminpanel:low_stock' %}" class="stat-link">
+                View low stock <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
     </div>
-  </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-content">
+                <div class="stat-label">Categories</div>
+                <div class="stat-value">{{ total_categories }}</div>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-tags"></i>
+            </div>
+        </div>
+        <div class="stat-footer">
+            <a href="{% url 'adminpanel:product_list' %}" class="stat-link">
+                Browse categories <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
 </div>
 
-<hr>
+<!-- Content Grid -->
+<div class="content-grid">
+    <!-- Low Stock Items -->
+    <div class="section-card">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-exclamation-circle"></i>
+                Low Stock Alert
+            </h2>
+        </div>
+        
+        {% if low_stock_products %}
+            {% for product in low_stock_products %}
+            <div class="stock-item">
+                <div class="stock-info">
+                    <div class="stock-name">{{ product.name }}</div>
+                    <div class="stock-category">{{ product.category.name }} • SKU: {{ product.sku }}</div>
+                </div>
+                <div class="stock-badge {% if product.stock == 0 %}critical{% else %}low{% endif %}">
+                    {% if product.stock == 0 %}
+                        Out of Stock
+                    {% else %}
+                        {{ product.stock }} left
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-check-circle"></i>
+                <p>All products are well stocked!</p>
+            </div>
+        {% endif %}
+    </div>
 
-<h4>⚠️ Low Stock Products</h4>
-<table class="table table-hover table-bordered">
-  <thead>
-    <tr>
-      <th>SKU</th>
-      <th>Name</th>
-      <th>Stock</th>
-      <th>Reorder Threshold</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for p in low_stock_products %}
-    <tr>
-      <td>{{ p.sku }}</td>
-      <td>{{ p.name }}</td>
-      <td>{{ p.stock }}</td>
-      <td>{{ p.reorder_threshold }}</td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="4" class="text-center">No low-stock products 🎉</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+    <!-- Top Categories -->
+    <div class="section-card">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-chart-bar"></i>
+                Top Categories
+            </h2>
+        </div>
+        
+        {% if category_stats %}
+            {% for category in category_stats %}
+            <div class="category-item">
+                <div class="category-icon">
+                    {{ forloop.counter }}
+                </div>
+                <div class="category-info">
+                    <div class="category-name">{{ category.name }}</div>
+                </div>
+                <div>
+                    <div class="category-count">{{ category.product_count }}</div>
+                    <div class="category-label">products</div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-folder-open"></i>
+                <p>No categories found</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
