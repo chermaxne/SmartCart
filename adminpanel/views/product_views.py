@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q, F
@@ -7,7 +7,11 @@ from django.views.decorators.http import require_POST
 from storefront.models import Product, Category
 from adminpanel.forms import ProductForm
 
+def is_staff_user(user):
+    return user.is_authenticated and user.is_staff
+
 @login_required(login_url='adminpanel:login')
+@user_passes_test(is_staff_user, login_url='adminpanel:login')
 def product_list(request):
     products = Product.objects.filter(is_active=True).select_related('category')
     
@@ -45,8 +49,8 @@ def product_list(request):
     
     return render(request, 'adminpanel/product/product_list.html', context)
 
-
 @login_required(login_url='adminpanel:login')
+@user_passes_test(is_staff_user, login_url='adminpanel:login')
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
     # Stock history not available in storefront model
@@ -59,8 +63,8 @@ def product_detail(request, pk):
     
     return render(request, 'adminpanel/product/product_detail.html', context)
 
-
 @login_required(login_url='adminpanel:login')
+@user_passes_test(is_staff_user, login_url='adminpanel:login')
 def low_stock(request):
     products = Product.objects.filter(
         is_active=True,
@@ -86,8 +90,8 @@ def low_stock(request):
     }
     return render(request, 'adminpanel/product/low_stock.html', context)
 
-
 @login_required(login_url='adminpanel:login')
+@user_passes_test(is_staff_user, login_url='adminpanel:login')
 def product_add(request):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
@@ -101,8 +105,8 @@ def product_add(request):
     context = {'form': form, 'is_edit': False}
     return render(request, 'adminpanel/product/product_form.html', context)
 
-
 @login_required(login_url='adminpanel:login')
+@user_passes_test(is_staff_user, login_url='adminpanel:login')
 def product_edit(request, pk):
     product = get_object_or_404(Product, pk=pk)
     
@@ -118,8 +122,8 @@ def product_edit(request, pk):
     context = {'form': form, 'is_edit': True, 'product': product}
     return render(request, 'adminpanel/product/product_form.html', context)
 
-
 @login_required(login_url='adminpanel:login')
+@user_passes_test(is_staff_user, login_url='adminpanel:login')
 @require_POST
 def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)

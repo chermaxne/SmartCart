@@ -1,10 +1,14 @@
 from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
 from django.db.models import Q
 from storefront.models import Customer
 
+def is_staff_user(user):
+    return user.is_authenticated and user.is_staff
+
 @login_required(login_url='adminpanel:login')
+@user_passes_test(is_staff_user, login_url='adminpanel:login')
 def customer_list(request):
     customers = Customer.objects.filter(is_active=True)
     
@@ -28,8 +32,8 @@ def customer_list(request):
     
     return render(request, 'adminpanel/customer/customer_list.html', context)
 
-
 @login_required(login_url='adminpanel:login')
+@user_passes_test(is_staff_user, login_url='adminpanel:login')
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     

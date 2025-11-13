@@ -1,9 +1,13 @@
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import F, Q, Count
 from storefront.models import Product, Customer, Category
 
+def is_staff_user(user):
+    return user.is_authenticated and user.is_staff
+
 @login_required(login_url='adminpanel:login')
+@user_passes_test(is_staff_user, login_url='adminpanel:login')
 def dashboard(request):
     # Statistics
     total_products = Product.objects.filter(is_active=True).count()

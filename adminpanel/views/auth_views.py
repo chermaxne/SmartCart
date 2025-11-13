@@ -1,7 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
+
+def is_staff_user(user):
+    return user.is_authenticated and user.is_staff
 
 def admin_login(request):
     if request.user.is_authenticated:
@@ -30,6 +33,7 @@ def admin_login(request):
 
 
 @login_required(login_url='adminpanel:login')
+@user_passes_test(is_staff_user, login_url='adminpanel:login')
 def admin_logout(request):
     logout(request)
     messages.success(request, 'Successfully logged out.')
