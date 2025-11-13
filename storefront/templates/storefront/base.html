@@ -575,9 +575,6 @@
                 <a href="{% url 'storefront:home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
                     Home
                 </a>
-                <a href="{% url 'storefront:ml_insights' %}" class="{% if request.resolver_match.url_name == 'ml_insights' %}active{% endif %}">
-                    AI Insights
-                </a>
                 <a href="{% url 'storefront:cart' %}" class="cart-link {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
                     Cart
                     <span class="cart-badge">{{ cart_count|default:"0" }}</span>

@@ -607,6 +607,10 @@
   </div>
   {% endif %}
 
+  <!-- DEBUG: Check if recommendations are passed -->
+  <!-- recommended_products count: {{ recommended_products|length }} -->
+  <!-- recommended_products exists: {{ recommended_products|yesno:"yes,no" }} -->
+  
   {% if recommended_products %}
   <div class="recommendations-section">
     <h2>{% if order_items %}You May Also Like{% else %}Popular Products{% endif %}</h2>
