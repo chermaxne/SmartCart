@@ -258,6 +258,10 @@
                 <option value="-name" {% if sort_by == '-name' %}selected{% endif %}>Name (Z-A)</option>
                 <option value="-price" {% if sort_by == '-price' %}selected{% endif %}>Price (High-Low)</option>
                 <option value="price" {% if sort_by == 'price' %}selected{% endif %}>Price (Low-High)</option>
+                <option value="-rating" {% if sort_by == '-rating' %}selected{% endif %}>Rating (High-Low)</option>
+                <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Rating (Low-High)</option>
+                <option value="-reorder_threshold" {% if sort_by == '-reorder_threshold' %}selected{% endif %}>Reorder Level (High-Low)</option>
+                <option value="reorder_threshold" {% if sort_by == 'reorder_threshold' %}selected{% endif %}>Reorder Level (Low-High)</option>
             </select>
         </div>
         

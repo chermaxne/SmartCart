@@ -56,7 +56,7 @@
     }
 
     .product-meta i {
-        color: #10b981;
+        color: #94a3b8;
     }
 
     .product-meta .divider {
@@ -197,7 +197,7 @@
     }
 
     .section-title i {
-        color: #10b981;
+        color: #94a3b8;
         font-size: 20px;
     }
 
@@ -232,7 +232,7 @@
         width: 20px;
         text-align: center;
         font-size: 14px;
-        color: #10b981;
+        color: #94a3b8;
     }
 
     .detail-value {
@@ -243,7 +243,7 @@
 
     .detail-value.price {
         font-size: 20px;
-        color: #10b981;
+        color: #0f172a;
     }
 
     .detail-value.highlight {
@@ -444,36 +444,23 @@
             </li>
             <li class="detail-item">
                 <span class="detail-label">
+                    <i class="fas fa-folder"></i>
+                    Subcategory
+                </span>
+                <span class="detail-value">
+                    {% if product.subcategory %}
+                        {{ product.subcategory }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </span>
+            </li>
+            <li class="detail-item">
+                <span class="detail-label">
                     <i class="fas fa-barcode"></i>
                     SKU Code
                 </span>
                 <span class="detail-value">{{ product.sku }}</span>
-            </li>
-            <li class="detail-item">
-                <span class="detail-label">
-                    <i class="fas fa-calendar-plus"></i>
-                    Date Added
-                </span>
-                <span class="detail-value">
-                    {% if product.created_at %}
-                        {{ product.created_at|date:"F j, Y" }}
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </span>
-            </li>
-            <li class="detail-item">
-                <span class="detail-label">
-                    <i class="fas fa-clock"></i>
-                    Last Updated
-                </span>
-                <span class="detail-value">
-                    {% if product.updated_at %}
-                        {{ product.updated_at|date:"F j, Y" }}
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </span>
             </li>
         </ul>
 

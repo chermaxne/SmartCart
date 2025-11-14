@@ -1,6 +1,7 @@
 {% extends "adminpanel/base.html" %}
 
 {% block title %}Customers{% endblock %}
+{% block page_title %}Customers{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -272,21 +273,21 @@
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1><i class="fas fa-users"></i> Customers</h1>
-</div>
 
 <div class="search-bar">
     <form method="GET" action="{% url 'adminpanel:customer_list' %}" class="search-form">
         <div class="search-input">
-            <input type="text" name="search" class="form-control" 
-                   placeholder="🔍 Search by name or email..." 
-                   value="{{ search_query }}">
+            <label for="sort" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Sort By</label>
+            <select name="sort" id="sort" class="form-control" onchange="this.form.submit()">
+                <option value="">Default</option>
+                <option value="age" {% if request.GET.sort == 'age' %}selected{% endif %}>Age (Low to High)</option>
+                <option value="-age" {% if request.GET.sort == '-age' %}selected{% endif %}>Age (High to Low)</option>
+                <option value="monthly_income_sgd" {% if request.GET.sort == 'monthly_income_sgd' %}selected{% endif %}>Income (Low to High)</option>
+                <option value="-monthly_income_sgd" {% if request.GET.sort == '-monthly_income_sgd' %}selected{% endif %}>Income (High to Low)</option>
+                <option value="household_size" {% if request.GET.sort == 'household_size' %}selected{% endif %}>Household Size (Low to High)</option>
+                <option value="-household_size" {% if request.GET.sort == '-household_size' %}selected{% endif %}>Household Size (High to Low)</option>
+            </select>
         </div>
-        <button type="submit" class="btn btn-primary">Search</button>
-        {% if search_query %}
-        <a href="{% url 'adminpanel:customer_list' %}" class="btn btn-secondary">Clear</a>
-        {% endif %}
     </form>
 </div>
 
@@ -298,9 +299,11 @@
     <table>
         <thead>
             <tr>
-                <th>Customer</th>
-                <th>Demographics</th>
+                <th>Age</th>
+                <th>Gender</th>
+                <th>Education</th>
                 <th>Employment</th>
+                <th>Occupation</th>
                 <th>Income</th>
                 <th>Household</th>
                 <th>Actions</th>
@@ -310,33 +313,23 @@
             {% for customer in page_obj %}
             <tr>
                 <td>
-                    <div class="customer-info">
-                        <div class="customer-avatar">
-                            {{ customer.full_name|slice:":1"|upper }}
-                        </div>
-                        <div class="customer-details">
-                            <h4>{{ customer.full_name }}</h4>
-                            <p>{{ customer.email }}</p>
-                            {% if customer.phone %}
-                            <p><i class="fas fa-phone"></i> {{ customer.phone }}</p>
-                            {% endif %}
-                        </div>
-                    </div>
+                    {{ customer.age }} years
                 </td>
                 <td>
-                    <div class="demographic-badges">
-                        <span class="badge badge-info">{{ customer.age }} yrs</span>
-                        <span class="badge badge-secondary">{{ customer.gender }}</span>
-                        <span class="badge badge-secondary">{{ customer.education }}</span>
-                    </div>
+                    {{ customer.gender }}
                 </td>
                 <td>
-                    <div>{{ customer.employment_status }}</div>
-                    <small style="color: #6b7280;">{{ customer.occupation }}</small>
+                    <span class="badge badge-primary">{{ customer.education }}</span>
                 </td>
                 <td>
-                    <strong style="color: #10b981;">${{ customer.monthly_income_sgd|floatformat:0 }}</strong>
-                    <small style="color: #6b7280; display: block;">monthly</small>
+                    {{ customer.employment_status }}
+                </td>
+                <td>
+                    {{ customer.occupation }}
+                </td>
+                <td>
+                    <strong style="color: #0f172a;">${{ customer.monthly_income_sgd|floatformat:0 }}</strong>
+                    <small style="color: #6b7280; display: block;">SGD/month</small>
                 </td>
                 <td>
                     <div>{{ customer.household_size }} member{{ customer.household_size|pluralize }}</div>

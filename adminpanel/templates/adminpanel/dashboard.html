@@ -15,16 +15,50 @@
 
     .stat-card {
         background: white;
-        border-radius: 12px;
+        border-radius: 16px;
         padding: 28px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08);
         border: 1px solid #e2e8f0;
         transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        opacity: 0.05;
+        border-radius: 50%;
+    }
+
+    /* Products - Green */
+    .stat-card:nth-child(1)::before {
+        background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    }
+
+    /* Customers - Pink */
+    .stat-card:nth-child(2)::before {
+        background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+    }
+
+    /* Low Stock - Yellow */
+    .stat-card:nth-child(3)::before {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    }
+
+    /* Categories - Purple */
+    .stat-card:nth-child(4)::before {
+        background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
     }
 
     .stat-card:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        border-color: #cbd5e1;
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        border-color: rgba(102, 126, 234, 0.3);
     }
 
     .stat-header {
@@ -37,33 +71,42 @@
     .stat-icon {
         width: 48px;
         height: 48px;
-        border-radius: 12px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 20px;
-        background: #f1f5f9;
+        font-size: 22px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
     }
 
-    /* Colored Icons for Dashboard */
+    .stat-card:hover .stat-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    /* Colored Icons for Dashboard - All White Backgrounds */
+    /* Products - Green */
     .stat-card:nth-child(1) .stat-icon {
-        background: #eff6ff;
-        color: #3b82f6;
+        background: #ffffff;
+        color: #059669;
     }
 
+    /* Customers - Pink */
     .stat-card:nth-child(2) .stat-icon {
-        background: #f0fdf4;
-        color: #10b981;
+        background: #ffffff;
+        color: #db2777;
     }
 
+    /* Low Stock - Yellow */
     .stat-card:nth-child(3) .stat-icon {
-        background: #fffbeb;
-        color: #f59e0b;
+        background: #ffffff;
+        color: #d97706;
     }
 
+    /* Categories - Purple */
     .stat-card:nth-child(4) .stat-icon {
-        background: #faf5ff;
-        color: #8b5cf6;
+        background: #ffffff;
+        color: #7c3aed;
     }
 
     .stat-content {
@@ -80,10 +123,43 @@
     }
 
     .stat-value {
-        font-size: 36px;
-        font-weight: 700;
-        color: #0f172a;
-        line-height: 1;
+        font-size: 40px;
+        font-weight: 800;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+    }
+
+    /* Gradient text for stat values - Matching Sidebar Colors */
+    /* Products - Green */
+    .stat-card:nth-child(1) .stat-value {
+        background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Customers - Pink */
+    .stat-card:nth-child(2) .stat-value {
+        background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Low Stock - Yellow */
+    .stat-card:nth-child(3) .stat-value {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    /* Categories - Purple */
+    .stat-card:nth-child(4) .stat-value {
+        background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
     .stat-footer {
@@ -95,16 +171,57 @@
     .stat-link {
         font-size: 13px;
         font-weight: 600;
-        color: #64748b;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
+        padding: 6px 12px;
+        border-radius: 8px;
+        background: rgba(102, 126, 234, 0.05);
+    }
+
+    /* Products - Green */
+    .stat-card:nth-child(1) .stat-link {
+        color: #10b981;
+    }
+
+    .stat-card:nth-child(1) .stat-link:hover {
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+    }
+
+    /* Customers - Pink */
+    .stat-card:nth-child(2) .stat-link {
+        color: #ec4899;
+    }
+
+    .stat-card:nth-child(2) .stat-link:hover {
+        background: rgba(236, 72, 153, 0.1);
+        color: #db2777;
+    }
+
+    /* Low Stock - Yellow */
+    .stat-card:nth-child(3) .stat-link {
+        color: #f59e0b;
+    }
+
+    .stat-card:nth-child(3) .stat-link:hover {
+        background: rgba(245, 158, 11, 0.1);
+        color: #d97706;
+    }
+
+    /* Categories - Purple */
+    .stat-card:nth-child(4) .stat-link {
+        color: #8b5cf6;
+    }
+
+    .stat-card:nth-child(4) .stat-link:hover {
+        background: rgba(139, 92, 246, 0.1);
+        color: #7c3aed;
     }
 
     .stat-link:hover {
-        color: #0f172a;
         gap: 10px;
     }
 
@@ -337,8 +454,8 @@
             </div>
         </div>
         <div class="stat-footer">
-            <a href="{% url 'adminpanel:product_list' %}" class="stat-link">
-                Browse categories <i class="fas fa-arrow-right"></i>
+            <a href="{% url 'adminpanel:category_list' %}" class="stat-link">
+                Manage categories <i class="fas fa-arrow-right"></i>
             </a>
         </div>
     </div>

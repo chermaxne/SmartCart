@@ -60,8 +60,9 @@ with fh:
                 skipped += 1
                 continue
 
-            full_cat = f"{category_name} / {subcategory}" if subcategory else category_name or "Uncategorized"
-            category, _ = Category.objects.get_or_create(name=full_cat)
+            # Use only category name without subcategory
+            cat_name = category_name or "Uncategorized"
+            category, _ = Category.objects.get_or_create(name=cat_name)
 
             stock = to_int(row.get('Quantity on hand'))
             reorder = to_int(row.get('Reorder Quantity'))
@@ -72,6 +73,7 @@ with fh:
                 'name': name,
                 'description': description,
                 'category': category,
+                'subcategory': subcategory,  # Store subcategory separately
                 'price': price,
                 'rating': rating,
                 'stock': stock,

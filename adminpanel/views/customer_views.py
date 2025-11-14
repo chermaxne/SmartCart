@@ -12,14 +12,10 @@ def is_staff_user(user):
 def customer_list(request):
     customers = Customer.objects.filter(is_active=True)
     
-    # Search
-    search_query = request.GET.get('search', '')
-    if search_query:
-        customers = customers.filter(
-            Q(first_name__icontains=search_query) |
-            Q(last_name__icontains=search_query) |
-            Q(email__icontains=search_query)
-        )
+    # Sorting
+    sort_by = request.GET.get('sort', '')
+    if sort_by:
+        customers = customers.order_by(sort_by)
     
     # Pagination
     paginator = Paginator(customers, 20)
@@ -27,7 +23,6 @@ def customer_list(request):
     
     context = {
         'page_obj': page_obj,
-        'search_query': search_query,
     }
     
     return render(request, 'adminpanel/customer/customer_list.html', context)
