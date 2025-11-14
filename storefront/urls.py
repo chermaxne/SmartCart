@@ -15,7 +15,6 @@ urlpatterns = [
     path('buy_now/<int:product_id>/', views.buy_now, name='buy_now'),
     path('checkout/', views.checkout, name='checkout'),
     path('register/', views.register, name='register'),
-    path('ml-insights/', views.ml_insights, name='ml_insights'),
     path('accounts/login/', views.login, name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
 ]
