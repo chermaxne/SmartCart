@@ -1,33 +1,18 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Product, Customer, Category, Favorite, Order, OrderItem
 from django.contrib import messages
-from .forms import UserRegisterForm, CustomerForm, UserProfileForm, CustomPasswordChangeForm
+from .forms import UserRegisterForm, CustomerForm
 from decimal import Decimal
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-<<<<<<< Updated upstream
-from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout, update_session_auth_hash
-=======
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
->>>>>>> Stashed changes
 from django.contrib.auth.decorators import login_required
-from django.db import IntegrityError
-from django.db.models import Q
 import logging
 
 # Import the simplified predictions_code module
 from predictions_code.predict_category import predict_customer_category
-<<<<<<< Updated upstream
-from predictions_code.predict_products import (
-    get_product_recommendations, 
-    get_product_recommendations_by_skus,
-    get_frequently_bought_together,
-    get_complete_the_set
-)
-=======
 from predictions_code.predict_products import get_product_recommendations, get_product_recommendations_by_skus, get_frequently_bought_together, get_complete_the_set
->>>>>>> Stashed changes
 
 logger = logging.getLogger(__name__)
 
@@ -36,62 +21,6 @@ logger = logging.getLogger(__name__)
 # -------------------------
 def _cart_dict(request):
     return request.session.setdefault('cart', {})  # keys: str(product_id) -> int(quantity)
-
-def _get_next_best_category(request):
-    """
-    Determine the "Next Best Action" category for the user to explore
-    Only shows once per session - returns None after user has seen it
-    Returns a category object or None
-    """
-    # Check if user has already seen the next best action
-    if request.session.get('next_best_action_shown', False):
-        return None
-    
-    if not request.user.is_authenticated:
-        # For anonymous users, suggest the most popular category
-        from django.db.models import Count
-        popular_category = Category.objects.annotate(
-            product_count=Count('product', filter=Q(product__is_active=True))
-        ).filter(product_count__gt=0).order_by('-product_count').first()
-        return popular_category
-    
-    user = request.user
-    
-    # Strategy 1: If user has a preferred category, suggest a DIFFERENT complementary category
-    # Don't suggest the same category they're already seeing in "Recommended For You"
-    if hasattr(user, 'preferred_category') and user.preferred_category:
-        from django.db.models import Count
-        
-        # Get a different category (not their preferred one)
-        complementary_category = Category.objects.exclude(
-            id=user.preferred_category.id
-        ).annotate(
-            product_count=Count('product', filter=Q(product__is_active=True))
-        ).filter(product_count__gt=0).order_by('-product_count').first()
-        
-        if complementary_category:
-            return complementary_category
-    
-    # Strategy 2: Use ML to predict best category based on user demographics
-    try:
-        predicted_category_name = predict_customer_category(user)
-        if predicted_category_name:
-            predicted_category = Category.objects.filter(
-                name__icontains=predicted_category_name
-            ).first()
-            
-            if predicted_category:
-                return predicted_category
-    except Exception as e:
-        logger.warning(f"Category prediction failed: {e}")
-    
-    # Strategy 3: Fallback - suggest most popular category
-    from django.db.models import Count
-    fallback_category = Category.objects.annotate(
-        product_count=Count('product', filter=Q(product__is_active=True))
-    ).filter(product_count__gt=0).order_by('-product_count').first()
-    
-    return fallback_category
 
 def cart_count(request):
     """
@@ -177,74 +106,11 @@ def buy_now(request, product_id):
 # -------------------------
 # Home and Product Views
 # -------------------------
-def shop_view(request):
-    """
-    Shop page with all products, sorting and filtering
-    """
-    from django.db.models import Q
-    
-    # Get all categories for the filter
-    all_categories = Category.objects.all().order_by('name')
-    
-    # Start with active products
-    products = Product.objects.filter(is_active=True)
-    
-    # Category filter
-    category_filter = request.GET.get('category', '').strip()
-    if category_filter:
-        products = products.filter(category__id=category_filter)
-        
-        # Mark next best action as shown if user clicked on it
-        if request.GET.get('from_nba'):
-            request.session['next_best_action_shown'] = True
-            request.session.modified = True
-    
-    # Search functionality
-    search_query = request.GET.get('search', '').strip()
-    if search_query:
-        products = products.filter(
-            Q(name__icontains=search_query) |
-            Q(description__icontains=search_query) |
-            Q(sku__icontains=search_query) |
-            Q(category__name__icontains=search_query)
-        )
-    
-    # Sorting
-    sort_option = request.GET.get('sort', '')
-    if sort_option == 'name-asc':
-        products = products.order_by('name')
-    elif sort_option == 'name-desc':
-        products = products.order_by('-name')
-    elif sort_option == 'price-asc':
-        products = products.order_by('price')
-    elif sort_option == 'price-desc':
-        products = products.order_by('-price')
-    elif sort_option == 'rating-desc':
-        products = products.order_by('-rating')
-    else:
-        products = products.order_by('-created_at')  # Default sort by newest
-    
-    # Get next best category to explore (only shown once)
-    next_best_category = _get_next_best_category(request)
-    
-    return render(request, 'storefront/shop.html', {
-        'products': products,
-        'search_query': search_query,
-        'sort_option': sort_option,
-        'all_categories': all_categories,
-        'category_filter': category_filter,
-        'next_best_category': next_best_category,
-    })
-
 def home_view(request):
     """
     Home page with personalized recommendations using new predictions_code module
     """
     from django.db.models import Q
-    
-    # Mark next best action as shown if user clicked through
-    if request.GET.get('from_nba'):
-        request.session['next_best_action_shown'] = True
     
     # Get all categories for the filter
     all_categories = Category.objects.all().order_by('name')
@@ -284,52 +150,35 @@ def home_view(request):
     
     recommended_products = None
     predicted_category = None
-    association_recommendations = []
     
     if request.user.is_authenticated:
         try:
-            # First check if user has set a preferred category manually
-            if request.user.preferred_category:
-                predicted_category = request.user.preferred_category.name
-                recommended_products = list(Product.objects.filter(
-                    category=request.user.preferred_category,
-                    is_active=True
-                ).order_by('-rating')[:6])
-            else:
-                # Fallback to ML prediction if no preferred category set
-                predicted_category = predict_customer_category(request.user)
-                
-                # Get products from predicted category (Recommended For You)
-                if predicted_category:
-                    try:
-                        category = Category.objects.get(name__icontains=predicted_category)
-                        recommended_products = list(Product.objects.filter(
-                            category=category,
-                            is_active=True
-                        ).order_by('-rating')[:6])
-                    except Category.DoesNotExist:
-                        recommended_products = list(Product.objects.filter(
-                            is_active=True
-                        ).order_by('-rating')[:6])
-                    except Category.MultipleObjectsReturned:
-                        category = Category.objects.filter(name__icontains=predicted_category).first()
-                        recommended_products = list(Product.objects.filter(
-                            category=category,
-                            is_active=True
-                        ).order_by('-rating')[:6])
+            # Predict customer's preferred category
+            predicted_category = predict_customer_category(request.user)
             
-            # Fallback: if no recommendations, use top-rated products
-            if not recommended_products or len(recommended_products) == 0:
-                recommended_products = list(Product.objects.filter(is_active=True).order_by('-rating')[:6])
-                
+            # Get products from predicted category
+            if predicted_category:
+                try:
+                    category = Category.objects.get(name__icontains=predicted_category)
+                    recommended_products = Product.objects.filter(
+                        category=category,
+                        is_active=True
+                    ).order_by('-rating')
+                except Category.DoesNotExist:
+                    recommended_products = Product.objects.filter(
+                        is_active=True
+                    ).order_by('-rating')
+                except Category.MultipleObjectsReturned:
+                    category = Category.objects.filter(name__icontains=predicted_category).first()
+                    recommended_products = Product.objects.filter(
+                        category=category,
+                        is_active=True
+                    ).order_by('-rating')
         except Exception as e:
             logger.error(f"Recommendation error in home_view: {e}", exc_info=True)
-            recommended_products = list(Product.objects.filter(is_active=True).order_by('-rating')[:6])
+            recommended_products = Product.objects.filter(is_active=True).order_by('-rating')
     else:
-        recommended_products = list(Product.objects.filter(is_active=True).order_by('-rating')[:6])
-    
-    # Get next best category to explore
-    next_best_category = _get_next_best_category(request)
+        recommended_products = Product.objects.filter(is_active=True).order_by('-rating')
     
     # Get next best action category
     next_best_category = _get_next_best_category(request)
@@ -351,34 +200,22 @@ def product_detail(request, id):
     """
     product = get_object_or_404(Product, id=id)
     
-    # Get "Frequently Bought Together" recommendations
-    frequently_bought_together = []
+    # Get recommendations using the new predictions_code module
+    related_products = []
     try:
-<<<<<<< Updated upstream
-        # Use the new get_frequently_bought_together function
-        recommended_skus = get_frequently_bought_together(product.sku, top_n=4)
-        
-        if recommended_skus:
-            frequently_bought_together = Product.objects.filter(
-                sku__in=recommended_skus,
-                is_active=True
-            )[:4]
-=======
         # Use association rules to find frequently bought together products
         related_products = get_frequently_bought_together(product.sku, top_n=4)
->>>>>>> Stashed changes
     except Exception as e:
-        logger.error(f"Frequently bought together error in product_detail: {e}", exc_info=True)
+        logger.error(f"Recommendation error in product_detail: {e}", exc_info=True)
         # Fallback: same category products
-        frequently_bought_together = Product.objects.filter(
+        related_products = Product.objects.filter(
             category=product.category,
             is_active=True
         ).exclude(id=product.id).order_by('-rating')[:4]
     
     return render(request, 'storefront/product_detail.html', {
         'product': product,
-        'related_products': frequently_bought_together,  # Keep same variable name for template compatibility
-        'frequently_bought_together': frequently_bought_together,
+        'related_products': related_products,
     })
 
 # -------------------------
@@ -481,63 +318,45 @@ def cart_view(request):
         total_price = (p.price * int(qty)).quantize(Decimal('0.01'))
         subtotal += total_price
         
-<<<<<<< Updated upstream
-        # Get "Complete the Set" recommendations for this specific product
-        item_recommendations = []
-        try:
-            recommended_skus = get_frequently_bought_together(p.sku, top_n=3)
-            if recommended_skus:
-                item_recommendations = list(Product.objects.filter(
-                    sku__in=recommended_skus,
-                    is_active=True
-                ).exclude(id=p.id)[:3])
-        except Exception as e:
-            logger.error(f"Complete the set for product {p.sku} error: {e}", exc_info=True)
-=======
         # Get "Complete the Set" recommendations for this specific item
         complete_the_set = get_frequently_bought_together(p.sku, top_n=6)
->>>>>>> Stashed changes
         
         order_items.append({
             'id': p.id,
             'product': p,
             'quantity': int(qty),
             'total_price': total_price,
-<<<<<<< Updated upstream
-            'complete_the_set': item_recommendations,
-=======
             'complete_the_set': complete_the_set,
->>>>>>> Stashed changes
         })
         cart_skus.append(p.sku)
 
-    # Free shipping for orders $50 or more
-    shipping = Decimal('0.00') if subtotal >= Decimal('50.00') else Decimal('9.99')
+    shipping = Decimal('9.99') if subtotal > 0 else Decimal('0.00')
     tax = (subtotal * Decimal('0.08')).quantize(Decimal('0.01'))
-    
-    discount = Decimal('0.00')
-    promo_code = request.session.get('promo_code')
-    print(f"DEBUG CART: promo_code from session = {promo_code}")
-    if promo_code == 'SAVE10':
-        discount = (subtotal * Decimal('0.1')).quantize(Decimal('0.01'))
-        print(f"DEBUG CART: Applied discount = {discount}")
-    
-    total = (subtotal + shipping + tax - discount).quantize(Decimal('0.01'))
+    total = (subtotal + shipping + tax).quantize(Decimal('0.01'))
 
-    # ML Integration: Get "Complete the Set" recommendations based on cart
-    complete_the_set_products = []
+    discount = Decimal('0.00')
+    if request.session.get('promo_code') == 'SAVE10':
+        discount = (subtotal * Decimal('0.1')).quantize(Decimal('0.01'))
+        total -= discount
+
+    # ML Integration: Get smart recommendations based on cart
+    recommended_products = []
     if cart_skus:
         try:
-            # Use the new get_complete_the_set function
-            recommended_skus = get_complete_the_set(cart_skus, top_n=6)
+            if request.user.is_authenticated:
+                # Use hybrid recommendation system (cart + customer profile)
+                recommended_skus = get_product_recommendations(cart_skus, request.user, top_n=6)
+            else:
+                # For non-authenticated users, use association rules only
+                recommended_skus = get_product_recommendations_by_skus(cart_skus, top_n=6)
             
             if recommended_skus:
-                complete_the_set_products = list(Product.objects.filter(
+                recommended_products = list(Product.objects.filter(
                     sku__in=recommended_skus,
                     is_active=True
                 )[:6])
         except Exception as e:
-            logger.error(f"Complete the set recommendations error: {e}", exc_info=True)
+            logger.error(f"Cart recommendations error: {e}", exc_info=True)
 
     return render(request, 'storefront/cart.html', {
         'order_items': order_items,
@@ -546,37 +365,23 @@ def cart_view(request):
         'tax': tax,
         'total': total,
         'discount': discount,
-        'promo_code': promo_code,
-        'recommended_products': complete_the_set_products,  # Keep same variable name for template compatibility
-        'complete_the_set_products': complete_the_set_products,
+        'recommended_products': recommended_products,
     })
 
 @require_POST
 def cart_apply_promo(request):
     """Apply promo code"""
     promo_code = request.POST.get('promo_code', '').strip().upper()
-    print(f"DEBUG: Received promo_code = '{promo_code}'")
+    request.session['promo_code'] = None
     
     if promo_code == 'SAVE10':
         request.session['promo_code'] = 'SAVE10'
-        request.session.modified = True
-        print("DEBUG: Applied SAVE10")
         messages.success(request, '🎉 Promo code applied! 10% off')
-    elif promo_code == '':
-        # Removing promo code
-        request.session['promo_code'] = None
-        request.session.modified = True
-        print("DEBUG: Removed promo code")
-        messages.info(request, 'Promo code removed')
-    else:
-        # Invalid promo code
-        request.session['promo_code'] = None
-        request.session.modified = True
-        print(f"DEBUG: Invalid promo code: '{promo_code}'")
+    elif promo_code:
         messages.error(request, 'Invalid promo code')
+    else:
+        messages.error(request, 'Please enter a promo code')
     
-    print(f"DEBUG: Session promo_code = {request.session.get('promo_code')}")
-    request.session.save()
     return redirect('storefront:cart')
 
 # -------------------------
@@ -605,13 +410,10 @@ def checkout(request):
         messages.warning(request, 'Your cart is empty')
         return redirect('storefront:cart')
 
-    # Free shipping for orders $50 or more
-    shipping = Decimal('0.00') if subtotal >= Decimal('50.00') else Decimal('9.99')
+    shipping = Decimal('9.99') if subtotal > 0 else Decimal('0.00')
     tax = (subtotal * Decimal('0.08')).quantize(Decimal('0.01'))
-    
     discount = Decimal('0.00')
-    promo_code = request.session.get('promo_code')
-    if promo_code == 'SAVE10':
+    if request.session.get('promo_code') == 'SAVE10':
         discount = (subtotal * Decimal('0.1')).quantize(Decimal('0.01'))
 
     total = (subtotal + shipping + tax - discount).quantize(Decimal('0.01'))
@@ -711,7 +513,6 @@ def checkout(request):
         "shipping": shipping,
         "tax": tax,
         "discount": discount,
-        "promo_code": promo_code,
         "total": total,
         "recommended_products": checkout_recommendations,  # Fixed: was checkout_recommendations
     })
@@ -728,55 +529,43 @@ def register(request):
         customer_form = CustomerForm(request.POST)
         
         if user_form.is_valid() and customer_form.is_valid():
-            try:
-                user = user_form.save(commit=False)
-                user.set_password(user_form.cleaned_data['password1'])
+            user = user_form.save(commit=False)
+            user.set_password(user_form.cleaned_data['password1'])
 
-                # Copy customer form fields
-                for field, value in customer_form.cleaned_data.items():
-                    if hasattr(user, field):
-                        try:
-                            setattr(user, field, value)
-                        except Exception:
-                            pass
-
-                user.save()
-
-                # ML Integration: Predict preferred category using new predictions_code
-                try:
-                    predicted_category = predict_customer_category(user)
-
-                    # Save predicted category to customer profile
+            # Copy customer form fields
+            for field, value in customer_form.cleaned_data.items():
+                if hasattr(user, field):
                     try:
-                        category = Category.objects.get(name__icontains=predicted_category)
-                        user.preferred_category = category
-                        user.save()
+                        setattr(user, field, value)
+                    except Exception:
+                        pass
 
-                        messages.success(
-                            request,
-                            f"🎉 Welcome to AuroraMart! Based on your profile, you might love our {predicted_category} products."
-                        )
-                    except Category.DoesNotExist:
-                        messages.success(request, "🎉 Account created successfully! Welcome to AuroraMart!")
+            user.save()
 
-                except Exception as e:
-                    logger.error(f"Category prediction error during registration: {e}", exc_info=True)
+            # ML Integration: Predict preferred category using new predictions_code
+            try:
+                predicted_category = predict_customer_category(user)
+
+                # Save predicted category to customer profile
+                try:
+                    category = Category.objects.get(name__icontains=predicted_category)
+                    user.preferred_category = category
+                    user.save()
+
+                    messages.success(
+                        request,
+                        f"🎉 Welcome to AuroraMart! Based on your profile, you might love our {predicted_category} products."
+                    )
+                except Category.DoesNotExist:
                     messages.success(request, "🎉 Account created successfully! Welcome to AuroraMart!")
 
-                # Auto-login
-                auth_login(request, user)
-                return redirect('storefront:home')
-                
-            except IntegrityError as e:
-                # Handle duplicate username or email
-                error_message = str(e).lower()
-                if 'username' in error_message:
-                    messages.error(request, "This username is already taken. Please choose a different username.")
-                elif 'email' in error_message:
-                    messages.error(request, "This email is already registered. Please use a different email or login.")
-                else:
-                    messages.error(request, "An account with this information already exists. Please try different details.")
-                logger.error(f"Registration IntegrityError: {e}")
+            except Exception as e:
+                logger.error(f"Category prediction error during registration: {e}", exc_info=True)
+                messages.success(request, "🎉 Account created successfully! Welcome to AuroraMart!")
+
+            # Auto-login
+            auth_login(request, user)
+            return redirect('storefront:home')
         else:
             messages.error(request, "Please correct the errors below.")
     else:
@@ -825,12 +614,8 @@ def logout_view(request):
 # -------------------------
 # Favorites/Wishlist
 # -------------------------
-# Favorites Views
-# -------------------------
 @login_required
-@csrf_exempt
 @require_POST
-@csrf_exempt
 def favorite_toggle(request, product_id):
     """Toggle favorite status for a product"""
     try:
@@ -938,37 +723,17 @@ def profile_favorites(request):
 
 @login_required
 def profile_edit(request):
-    """Edit profile - basic user info (username, email, names)"""
+    """Edit profile"""
     if request.method == 'POST':
-        form = UserProfileForm(request.POST, instance=request.user)
+        form = CustomerForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, '✓ Profile updated successfully!')
             return redirect('storefront:profile')
     else:
-        form = UserProfileForm(instance=request.user)
+        form = CustomerForm(instance=request.user)
     
     return render(request, 'storefront/profile_edit.html', {
-        'form': form,
-    })
-
-@login_required
-def change_password(request):
-    """Change password"""
-    if request.method == 'POST':
-        form = CustomPasswordChangeForm(request.user, request.POST)
-        if form.is_valid():
-            user = form.save()
-            # Important: Update the session to prevent logout
-            update_session_auth_hash(request, user)
-            messages.success(request, '✓ Password changed successfully!')
-            return redirect('storefront:profile')
-        else:
-            messages.error(request, 'Please correct the errors below.')
-    else:
-        form = CustomPasswordChangeForm(request.user)
-    
-    return render(request, 'storefront/change_password.html', {
         'form': form,
     })
 
