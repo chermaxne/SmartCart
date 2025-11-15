@@ -25,6 +25,12 @@
         {% endif %}
     </div>
     <div style="display: flex; gap: 12px;">
+        <a href="{% url 'adminpanel:category_edit' category.id %}" style="padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; background: #0f172a; color: white; transition: all 0.2s ease;">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="{% url 'adminpanel:category_delete' category.id %}" onclick="return confirm('Are you sure you want to delete this category?');" style="padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; background: #dc2626; color: white; transition: all 0.2s ease;">
+            <i class="fas fa-trash"></i> Delete
+        </a>
         <a href="{% url 'adminpanel:category_list' %}" style="padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; background: #f1f5f9; color: #64748b;">
             <i class="fas fa-arrow-left"></i> Back
         </a>

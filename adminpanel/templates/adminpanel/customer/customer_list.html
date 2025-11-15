@@ -280,12 +280,12 @@
             <label for="sort" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Sort By</label>
             <select name="sort" id="sort" class="form-control" onchange="this.form.submit()">
                 <option value="">Default</option>
+                <option value="id" {% if request.GET.sort == 'id' %}selected{% endif %}>Customer ID (Ascending)</option>
+                <option value="-id" {% if request.GET.sort == '-id' %}selected{% endif %}>Customer ID (Descending)</option>
                 <option value="age" {% if request.GET.sort == 'age' %}selected{% endif %}>Age (Low to High)</option>
                 <option value="-age" {% if request.GET.sort == '-age' %}selected{% endif %}>Age (High to Low)</option>
                 <option value="monthly_income_sgd" {% if request.GET.sort == 'monthly_income_sgd' %}selected{% endif %}>Income (Low to High)</option>
                 <option value="-monthly_income_sgd" {% if request.GET.sort == '-monthly_income_sgd' %}selected{% endif %}>Income (High to Low)</option>
-                <option value="household_size" {% if request.GET.sort == 'household_size' %}selected{% endif %}>Household Size (Low to High)</option>
-                <option value="-household_size" {% if request.GET.sort == '-household_size' %}selected{% endif %}>Household Size (High to Low)</option>
             </select>
         </div>
     </form>
@@ -299,13 +299,12 @@
     <table>
         <thead>
             <tr>
-                <th>Age</th>
-                <th>Gender</th>
+                <th>Customer</th>
                 <th>Education</th>
                 <th>Employment</th>
-                <th>Occupation</th>
                 <th>Income</th>
                 <th>Household</th>
+                <th>Preferred Category</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -313,19 +312,22 @@
             {% for customer in page_obj %}
             <tr>
                 <td>
-                    {{ customer.age }} years
-                </td>
-                <td>
-                    {{ customer.gender }}
+                    <div class="customer-info">
+                        <div class="customer-avatar">
+                            {{ customer.id }}
+                        </div>
+                        <div class="customer-details">
+                            <h4>Customer #{{ customer.id }}</h4>
+                            <p>{{ customer.age }} years, {{ customer.gender }}</p>
+                        </div>
+                    </div>
                 </td>
                 <td>
                     <span class="badge badge-primary">{{ customer.education }}</span>
                 </td>
                 <td>
-                    {{ customer.employment_status }}
-                </td>
-                <td>
-                    {{ customer.occupation }}
+                    <div style="font-weight: 600; color: #0f172a; margin-bottom: 4px;">{{ customer.occupation }}</div>
+                    <small style="color: #6b7280;">{{ customer.employment_status }}</small>
                 </td>
                 <td>
                     <strong style="color: #0f172a;">${{ customer.monthly_income_sgd|floatformat:0 }}</strong>
@@ -335,6 +337,13 @@
                     <div>{{ customer.household_size }} member{{ customer.household_size|pluralize }}</div>
                     {% if customer.has_children %}
                     <span class="badge badge-warning">Has Children</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if customer.preferred_category %}
+                    <span class="badge badge-primary">{{ customer.preferred_category.name }}</span>
+                    {% else %}
+                    <span class="badge badge-secondary">None</span>
                     {% endif %}
                 </td>
                 <td>
