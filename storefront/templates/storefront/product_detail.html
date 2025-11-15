@@ -861,7 +861,11 @@
     <a href="{% url 'storefront:home' %}">Home</a>
     <span class="breadcrumb-separator">›</span>
     {% if product.category %}
-    <a href="#">{{ product.category }}</a>
+    <a href="#">{{ product.category.name }}</a>
+    {% if product.subcategory %}
+    <span class="breadcrumb-separator">›</span>
+    <a href="#">{{ product.subcategory }}</a>
+    {% endif %}
     <span class="breadcrumb-separator">›</span>
     {% endif %}
     <span>{{ product.name }}</span>
@@ -921,84 +925,41 @@
               {% if forloop.counter <= product.rating %}★{% else %}☆{% endif %}
             {% endfor %}
           {% else %}
-            ★★★★★
+            ☆☆☆☆☆
           {% endif %}
         </div>
         <div class="rating-text">
-          <span>{{ product.rating|default:"5.0" }}</span> • 
-          <a href="#reviews">{{ product.review_count|default:"247" }} reviews</a>
+          <span>{{ product.rating|floatformat:1 }}</span>
         </div>
       </div>
 
       <div class="product-price-section">
         <div class="price-container">
-          <span class="current-price">${{ product.price|default:"29.99" }}</span>
-          {% if product.original_price %}
-          <span class="original-price">${{ product.original_price }}</span>
-          <span class="discount-badge">-{{ product.discount_percent }}%</span>
-          {% endif %}
+          <span class="current-price">${{ product.price }}</span>
         </div>
         
-        {% if product.stock %}
-          {% if product.stock > 10 %}
-          <div class="stock-status in-stock">
-            <span class="stock-dot"></span>
-            In Stock
-          </div>
-          {% elif product.stock > 0 %}
-          <div class="stock-status low-stock">
-            <span class="stock-dot"></span>
-            Only {{ product.stock }} left in stock
-          </div>
-          {% else %}
-          <div class="stock-status out-of-stock">
-            <span class="stock-dot"></span>
-            Out of Stock
-          </div>
-          {% endif %}
-        {% else %}
+        {% if product.stock > 10 %}
         <div class="stock-status in-stock">
           <span class="stock-dot"></span>
-          In Stock
+          In Stock ({{ product.stock }} available)
+        </div>
+        {% elif product.stock > 0 %}
+        <div class="stock-status low-stock">
+          <span class="stock-dot"></span>
+          Only {{ product.stock }} left in stock
+        </div>
+        {% else %}
+        <div class="stock-status out-of-stock">
+          <span class="stock-dot"></span>
+          Out of Stock
         </div>
         {% endif %}
       </div>
 
       <div class="product-description">
         <h3>Description</h3>
-        <p>{{ product.description|default:"Experience premium quality with this exceptional product. Crafted with attention to detail and designed for those who appreciate excellence. Perfect for everyday use and special occasions alike." }}</p>
+        <p>{{ product.description|default:"No description available." }}</p>
       </div>
-
-      {% if product.has_colors %}
-      <div class="product-options">
-        <div class="option-group">
-          <label class="option-label">Color</label>
-          <div class="color-options">
-            <div class="color-option active" style="background: #333;" onclick="selectColor(this)"></div>
-            <div class="color-option" style="background: #667eea;" onclick="selectColor(this)"></div>
-            <div class="color-option" style="background: #e53935;" onclick="selectColor(this)"></div>
-            <div class="color-option" style="background: #4CAF50;" onclick="selectColor(this)"></div>
-            <div class="color-option" style="background: #fff; border-color: #ddd;" onclick="selectColor(this)"></div>
-          </div>
-        </div>
-      </div>
-      {% endif %}
-
-      {% if product.has_sizes %}
-      <div class="product-options">
-        <div class="option-group">
-          <label class="option-label">Size</label>
-          <div class="size-options">
-            <button class="size-option" onclick="selectSize(this)">XS</button>
-            <button class="size-option active" onclick="selectSize(this)">S</button>
-            <button class="size-option" onclick="selectSize(this)">M</button>
-            <button class="size-option" onclick="selectSize(this)">L</button>
-            <button class="size-option" onclick="selectSize(this)">XL</button>
-            <button class="size-option unavailable" disabled>XXL</button>
-          </div>
-        </div>
-      </div>
-      {% endif %}
 
       <div class="quantity-selector">
         <span class="quantity-label">Quantity:</span>
@@ -1047,247 +1008,24 @@
       <div class="product-meta">
         <div class="meta-item">
           <span class="meta-label">SKU:</span>
-          <span class="meta-value">{{ product.sku|default:"PRD-12345" }}</span>
+          <span class="meta-value">{{ product.sku }}</span>
         </div>
         <div class="meta-item">
           <span class="meta-label">Category:</span>
           <span class="meta-value">
-            <a href="#">{{ product.category|default:"Electronics" }}</a>
+            {{ product.category.name }}
+            {% if product.subcategory %}
+            / {{ product.subcategory }}
+            {% endif %}
           </span>
         </div>
-        <div class="meta-item">
-          <span class="meta-label">Tags:</span>
-          <span class="meta-value">
-            <a href="#">{{ product.tags|default:"Featured" }}</a>, 
-            <a href="#">Best Seller</a>
-          </span>
-        </div>
-        {% if product.brand %}
-        <div class="meta-item">
-          <span class="meta-label">Brand:</span>
-          <span class="meta-value">{{ product.brand }}</span>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-
-  <div class="product-tabs">
-    <div class="tab-headers">
-      <button class="tab-header active" onclick="switchTab(0)">Description</button>
-      <button class="tab-header" onclick="switchTab(1)">Specifications</button>
-      <button class="tab-header" onclick="switchTab(2)">Reviews (247)</button>
-      <button class="tab-header" onclick="switchTab(3)">Shipping & Returns</button>
-    </div>
-
-    <div class="tab-content active" id="tab-0">
-      <h3 style="margin-bottom: 20px; font-size: 24px;">Product Description</h3>
-      <p style="color: #666; line-height: 1.8; margin-bottom: 20px;">
-        {{ product.description|default:"Experience premium quality with this exceptional product. Crafted with attention to detail and designed for those who appreciate excellence." }}
-      </p>
-      <p style="color: #666; line-height: 1.8; margin-bottom: 20px;">
-        Our product combines innovative design with practical functionality. Whether you're looking for everyday reliability or exceptional performance, this product delivers on all fronts. Made with high-quality materials and built to last.
-      </p>
-      <h4 style="margin: 25px 0 15px; font-size: 18px;">Key Features:</h4>
-      <ul style="color: #666; line-height: 2; padding-left: 20px;">
-        <li>Premium quality construction for long-lasting durability</li>
-        <li>Ergonomic design for maximum comfort</li>
-        <li>Easy to use with intuitive controls</li>
-        <li>Eco-friendly and sustainable materials</li>
-        <li>Compatible with all standard accessories</li>
-      </ul>
-    </div>
-
-    <div class="tab-content" id="tab-1">
-      <h3 style="margin-bottom: 25px; font-size: 24px;">Technical Specifications</h3>
-      <div class="specifications-grid">
-        <div class="spec-item">
-          <span class="spec-label">Dimensions:</span>
-          <span class="spec-value">{{ product.dimensions|default:"10 x 8 x 2 inches" }}</span>
-        </div>
-        <div class="spec-item">
-          <span class="spec-label">Weight:</span>
-          <span class="spec-value">{{ product.weight|default:"1.5 lbs" }}</span>
-        </div>
-        <div class="spec-item">
-          <span class="spec-label">Material:</span>
-          <span class="spec-value">{{ product.material|default:"Premium Plastic & Metal" }}</span>
-        </div>
-        <div class="spec-item">
-          <span class="spec-label">Color Options:</span>
-          <span class="spec-value">Black, Blue, Red, Green, White</span>
-        </div>
-        <div class="spec-item">
-          <span class="spec-label">Warranty:</span>
-          <span class="spec-value">2 Years Manufacturer Warranty</span>
-        </div>
-        <div class="spec-item">
-          <span class="spec-label">Origin:</span>
-          <span class="spec-value">{{ product.origin|default:"Made in USA" }}</span>
-        </div>
-        <div class="spec-item">
-          <span class="spec-label">Model Number:</span>
-          <span class="spec-value">{{ product.model|default:"SC-2024-PRO" }}</span>
-        </div>
-        <div class="spec-item">
-          <span class="spec-label">Release Date:</span>
-          <span class="spec-value">{{ product.release_date|default:"January 2024" }}</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="tab-content" id="tab-2">
-      <div class="reviews-section">
-        <div class="reviews-summary">
-          <div class="rating-overview">
-            <div class="rating-number">{{ product.rating|default:"4.8" }}</div>
-            <div class="rating-stars-large">★★★★★</div>
-            <div class="rating-count">Based on {{ product.review_count|default:"247" }} reviews</div>
-          </div>
-          
-          <div class="rating-breakdown">
-            <div class="rating-bar">
-              <span class="rating-bar-label">5 stars</span>
-              <div class="rating-bar-container">
-                <div class="rating-bar-fill" style="width: 75%;"></div>
-              </div>
-              <span class="rating-bar-count">185</span>
-            </div>
-            <div class="rating-bar">
-              <span class="rating-bar-label">4 stars</span>
-              <div class="rating-bar-container">
-                <div class="rating-bar-fill" style="width: 15%;"></div>
-              </div>
-              <span class="rating-bar-count">37</span>
-            </div>
-            <div class="rating-bar">
-              <span class="rating-bar-label">3 stars</span>
-              <div class="rating-bar-container">
-                <div class="rating-bar-fill" style="width: 7%;"></div>
-              </div>
-              <span class="rating-bar-count">17</span>
-            </div>
-            <div class="rating-bar">
-              <span class="rating-bar-label">2 stars</span>
-              <div class="rating-bar-container">
-                <div class="rating-bar-fill" style="width: 2%;"></div>
-              </div>
-              <span class="rating-bar-count">5</span>
-            </div>
-            <div class="rating-bar">
-              <span class="rating-bar-label">1 star</span>
-              <div class="rating-bar-container">
-                <div class="rating-bar-fill" style="width: 1%;"></div>
-              </div>
-              <span class="rating-bar-count">3</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="review-item">
-          <div class="review-header">
-            <div class="reviewer-info">
-              <div class="reviewer-avatar">JS</div>
-              <div class="reviewer-details">
-                <h4>John Smith</h4>
-                <div class="review-date">Verified Purchase • 2 weeks ago</div>
-              </div>
-            </div>
-            <div class="review-rating">★★★★★</div>
-          </div>
-          <div class="review-content">
-            Amazing product! Exceeded my expectations in every way. The build quality is excellent, and it works exactly as advertised. Highly recommend to anyone looking for a reliable solution.
-          </div>
-          <div class="review-helpful">
-            <span>Was this helpful?</span>
-            <button class="helpful-btn">👍 Yes (24)</button>
-            <button class="helpful-btn">👎 No (2)</button>
-          </div>
-        </div>
-
-        <div class="review-item">
-          <div class="review-header">
-            <div class="reviewer-info">
-              <div class="reviewer-avatar">EJ</div>
-              <div class="reviewer-details">
-                <h4>Emily Johnson</h4>
-                <div class="review-date">Verified Purchase • 1 month ago</div>
-              </div>
-            </div>
-            <div class="review-rating">★★★★★</div>
-          </div>
-          <div class="review-content">
-            Great value for money. I've been using this for a month now and it's been fantastic. The customer service was also very helpful when I had questions about setup.
-          </div>
-          <div class="review-helpful">
-            <span>Was this helpful?</span>
-            <button class="helpful-btn">👍 Yes (18)</button>
-            <button class="helpful-btn">👎 No (1)</button>
-          </div>
-        </div>
-
-        <div class="review-item">
-          <div class="review-header">
-            <div class="reviewer-info">
-              <div class="reviewer-avatar">MD</div>
-              <div class="reviewer-details">
-                <h4>Michael Davis</h4>
-                <div class="review-date">Verified Purchase • 2 months ago</div>
-              </div>
-            </div>
-            <div class="review-rating">★★★★☆</div>
-          </div>
-          <div class="review-content">
-            Good product overall. Does what it's supposed to do. Only minor complaint is that the packaging could be better, but the product itself arrived in perfect condition.
-          </div>
-          <div class="review-helpful">
-            <span>Was this helpful?</span>
-            <button class="helpful-btn">👍 Yes (12)</button>
-            <button class="helpful-btn">👎 No (0)</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="tab-content" id="tab-3">
-      <h3 style="margin-bottom: 25px; font-size: 24px;">Shipping Information</h3>
-      <div style="background: #f8f9ff; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
-        <h4 style="margin-bottom: 15px; font-size: 18px;">📦 Delivery Options</h4>
-        <ul style="color: #666; line-height: 2; padding-left: 20px;">
-          <li><strong>Standard Shipping:</strong> 5-7 business days - FREE on orders over $50</li>
-          <li><strong>Express Shipping:</strong> 2-3 business days - $15.99</li>
-          <li><strong>Next Day Delivery:</strong> Order before 2 PM - $24.99</li>
-          <li><strong>International Shipping:</strong> 10-15 business days - Calculated at checkout</li>
-        </ul>
-      </div>
-
-      <h3 style="margin-bottom: 25px; font-size: 24px;">Return Policy</h3>
-      <div style="background: #f8f9ff; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
-        <h4 style="margin-bottom: 15px; font-size: 18px;">↩️ Easy Returns</h4>
-        <p style="color: #666; line-height: 1.8; margin-bottom: 15px;">
-          We offer a hassle-free 30-day return policy. If you're not completely satisfied with your purchase, you can return it for a full refund or exchange.
-        </p>
-        <ul style="color: #666; line-height: 2; padding-left: 20px;">
-          <li>Items must be in original condition with tags attached</li>
-          <li>Free return shipping on defective items</li>
-          <li>Refunds processed within 5-7 business days</li>
-          <li>Exchanges available for different sizes/colors</li>
-        </ul>
-      </div>
-
-      <h3 style="margin-bottom: 25px; font-size: 24px;">Warranty Coverage</h3>
-      <div style="background: #f8f9ff; padding: 25px; border-radius: 12px;">
-        <h4 style="margin-bottom: 15px; font-size: 18px;">✓ 2-Year Warranty</h4>
-        <p style="color: #666; line-height: 1.8;">
-          All our products come with a comprehensive 2-year manufacturer warranty covering defects in materials and workmanship. Extended warranty options available at checkout.
-        </p>
       </div>
     </div>
   </div>
 
   {% if related_products %}
   <div class="related-products">
-    <h2>You May Also Like</h2>
+    <h2>Frequently Bought Together</h2>
     <div class="related-grid">
       {% for related in related_products %}
       <a href="{% url 'storefront:product_detail' related.id %}" class="related-product-card">
@@ -1300,64 +1038,36 @@
         </div>
         <div class="related-product-info">
           <h3>{{ related.name }}</h3>
-          <div class="related-product-price">${{ related.price|default:"29.99" }}</div>
+          <div class="related-product-price">${{ related.price }}</div>
         </div>
       </a>
       {% endfor %}
-    </div>
-  </div>
-  {% else %}
-  <div class="related-products">
-    <h2>You May Also Like</h2>
-    <div class="related-grid">
-      <a href="#" class="related-product-card">
-        <div class="related-product-image">📱</div>
-        <div class="related-product-info">
-          <h3>Premium Headphones</h3>
-          <div class="related-product-price">$79.99</div>
-        </div>
-      </a>
-      <a href="#" class="related-product-card">
-        <div class="related-product-image">⌚</div>
-        <div class="related-product-info">
-          <h3>Smart Watch</h3>
-          <div class="related-product-price">$199.99</div>
-        </div>
-      </a>
-      <a href="#" class="related-product-card">
-        <div class="related-product-image">💻</div>
-        <div class="related-product-info">
-          <h3>Wireless Keyboard</h3>
-          <div class="related-product-price">$49.99</div>
-        </div>
-      </a>
-      <a href="#" class="related-product-card">
-        <div class="related-product-image">🎮</div>
-        <div class="related-product-info">
-          <h3>Gaming Mouse</h3>
-          <div class="related-product-price">$59.99</div>
-        </div>
-      </a>
     </div>
   </div>
   {% endif %}
 </div>
 
 <script>
+  // CSRF token helper function
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
   function changeImage(src, element) {
     document.getElementById('mainImage').src = src;
     document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
     element.classList.add('active');
-  }
-
-  function switchTab(index) {
-    document.querySelectorAll('.tab-header').forEach(header => header.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    
-    document.querySelectorAll('.tab-header')[index].classList.add('active');
-    document.getElementById(`tab-${index}`).classList.add('active');
-    
-    document.querySelector('.product-tabs').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   function incrementQty() {
@@ -1384,25 +1094,39 @@
   }
 
   function buyNow() {
-    window.location.href = "{% url 'storefront:checkout' %}";
+    // Get the quantity from the input field
+    const quantityInput = document.getElementById('quantity');
+    const quantity = quantityInput ? quantityInput.value : 1;
+    
+    // Add to cart via AJAX
+    fetch("{% url 'storefront:cart_add' product.id %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': getCookie('csrftoken'),
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: `quantity=${quantity}`
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        // Immediately redirect to checkout
+        window.location.href = "{% url 'storefront:checkout' %}";
+      } else {
+        alert(data.message || 'Error adding to cart');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error processing your request');
+    });
   }
 
   function toggleWishlist() {
     const btn = document.getElementById('wishlistBtn');
     btn.classList.toggle('active');
     btn.textContent = btn.classList.contains('active') ? '♥' : '♡';
-  }
-
-  function selectColor(element) {
-    document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active'));
-    element.classList.add('active');
-  }
-
-  function selectSize(element) {
-    if (!element.disabled) {
-      document.querySelectorAll('.size-option').forEach(opt => opt.classList.remove('active'));
-      element.classList.add('active');
-    }
   }
 
   const mainImage = document.getElementById('mainImage');
@@ -1419,11 +1143,6 @@
       this.style.transform = 'scale(1)';
     });
   }
-
-  document.querySelector('.rating-text a')?.addEventListener('click', function(e) {
-    e.preventDefault();
-    switchTab(2);
-  });
 </script>
 {% endblock %}
 

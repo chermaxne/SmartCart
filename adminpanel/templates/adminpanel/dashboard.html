@@ -477,7 +477,9 @@
             <div class="stock-item">
                 <div class="stock-info">
                     <div class="stock-name">{{ product.name }}</div>
-                    <div class="stock-category">{{ product.category.name }} • SKU: {{ product.sku }}</div>
+                    <div class="stock-category">
+                        {{ product.category.name }}{% if product.subcategory %} / {{ product.subcategory }}{% endif %} • SKU: {{ product.sku }}
+                    </div>
                 </div>
                 <div class="stock-badge {% if product.stock == 0 %}critical{% else %}low{% endif %}">
                     {% if product.stock == 0 %}

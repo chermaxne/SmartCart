@@ -299,6 +299,9 @@
                 </td>
                 <td>
                     <span class="category-badge">{{ product.category.name }}</span>
+                    {% if product.subcategory %}
+                    <br><small style="color: #6b7280; margin-top: 4px; display: block;">{{ product.subcategory }}</small>
+                    {% endif %}
                 </td>
                 <td>
                     <span class="stock-status {% if product.stock == 0 %}critical{% else %}low{% endif %}">

@@ -342,7 +342,7 @@
         <div class="product-meta">
             <span><i class="fas fa-barcode"></i> SKU: {{ product.sku }}</span>
             <span class="divider">|</span>
-            <span><i class="fas fa-folder"></i> {{ product.category.name }}</span>
+            <span><i class="fas fa-folder"></i> {{ product.category.name }}{% if product.subcategory %} / {{ product.subcategory }}{% endif %}</span>
         </div>
     </div>
     <div class="product-actions">

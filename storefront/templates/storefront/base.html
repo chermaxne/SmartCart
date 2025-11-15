@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}SmartCart{% endblock %}</title>
+    <title>{% block title %}AuroraMart{% endblock %}</title>
     <meta name="csrf-token" content="{{ csrf_token }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/modern.css' %}">
     <link rel="icon" href="{% static 'images/Auroramart-logo.png' %}">    
     
     <style>
@@ -17,10 +19,10 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            color: #333;
-            line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.5;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -28,84 +30,68 @@
 
         /* Header & Navigation */
         header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            background: #fff;
+            border-bottom: 1px solid #e9ecef;
             position: sticky;
             top: 0;
             z-index: 1000;
-            transition: all 0.3s ease;
         }
 
         .header-content {
-            max-width: 1400px;
+            max-width: 1320px;
             margin: 0 auto;
-            padding: 0 40px;
+            padding: 0 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 80px;
+            height: 64px;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             text-decoration: none;
-            color: #333;
-            transition: transform 0.3s ease;
-        }
-
-        .logo:hover {
-            transform: scale(1.05);
+            color: #212529;
         }
 
         .logo-icon {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
         }
 
         .logo-text {
-            font-size: 28px;
+            font-size: 20px;
             font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #5f27cd;
+            letter-spacing: -0.5px;
         }
 
         nav {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
         }
 
         nav a {
-            color: #555;
+            color: #495057;
             text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 15px;
-            transition: all 0.3s ease;
-            position: relative;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
         }
 
         nav a:hover {
-            color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
+            color: #5f27cd;
+            background: #f8f9fa;
         }
 
         nav a.active {
-            color: #667eea;
-            background: rgba(102, 126, 234, 0.15);
+            color: #5f27cd;
+            background: #f1f3f5;
         }
 
         .cart-link {
@@ -114,41 +100,55 @@
 
         .cart-badge {
             position: absolute;
-            top: 4px;
-            right: 10px;
-            background: #e53935;
+            top: 2px;
+            right: 8px;
+            background: #ff6b6b;
             color: white;
             border-radius: 10px;
             padding: 2px 6px;
-            font-size: 11px;
-            font-weight: 700;
-            min-width: 18px;
+            font-size: 10px;
+            font-weight: 600;
+            min-width: 16px;
             text-align: center;
         }
 
         .user-menu {
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-left: 20px;
-            padding-left: 20px;
-            border-left: 2px solid #e0e0e0;
+            gap: 8px;
+            margin-left: 16px;
+            padding-left: 16px;
+            border-left: 1px solid #dee2e6;
         }
 
         .user-menu a {
-            padding: 8px 16px;
+            padding: 6px 14px;
             border-radius: 6px;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
         }
 
-        .user-menu a[href*="register"] {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .user-menu a[href*="register"],
+        .user-menu a[href*="login"] {
+            background: #5f27cd;
             color: white !important;
         }
 
-        .user-menu a[href*="register"]:hover {
-            transform: scale(1.05);
+        .user-menu a[href*="register"]:hover,
+        .user-menu a[href*="login"]:hover {
+            background: #341f97;
+        }
+
+        .user-menu a[href*="logout"] {
+            background: transparent;
+            color: #495057 !important;
+            border: 1px solid #dee2e6;
+        }
+
+        .user-menu a[href*="logout"]:hover {
+            background: #f8f9fa;
+        }
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
@@ -582,6 +582,12 @@
                 <a href="{% url 'storefront:checkout' %}" class="{% if request.resolver_match.url_name == 'checkout' %}active{% endif %}">
                     Checkout
                 </a>
+                
+                {% if user.is_authenticated %}
+                <a href="{% url 'storefront:profile' %}" class="{% if 'profile' in request.resolver_match.url_name %}active{% endif %}">
+                    My Profile
+                </a>
+                {% endif %}
                 
                 <div class="user-menu">
                     {% if user.is_authenticated %}

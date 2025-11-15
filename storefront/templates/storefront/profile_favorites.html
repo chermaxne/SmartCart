@@ -1,0 +1,150 @@
+{% extends "storefront/base.html" %}
+{% load static %}
+
+{% block title %}My Favourites{% endblock %}
+
+{% block extra_css %}
+<style>
+  .profile-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+  
+  .profile-nav {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+  
+  .profile-nav a {
+    padding: 12px 24px;
+    background: white;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #667eea;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+  
+  .profile-nav a:hover, .profile-nav a.active {
+    background: #667eea;
+    color: white;
+  }
+  
+  .favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+  }
+  
+  .favorite-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+    position: relative;
+  }
+  
+  .favorite-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  }
+  
+  .favorite-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+  }
+  
+  .favorite-info {
+    padding: 20px;
+  }
+  
+  .remove-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    color: #e74c3c;
+    transition: all 0.3s;
+  }
+  
+  .remove-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+  <h1 style="margin-bottom: 30px;">My Favourites </h1>
+  
+  <div class="profile-nav">
+    <a href="{% url 'storefront:profile' %}">Dashboard</a>
+    <a href="{% url 'storefront:profile_orders' %}">Order History</a>
+    <a href="{% url 'storefront:profile_favorites' %}" class="active">Favorites</a>
+    <a href="{% url 'storefront:profile_edit' %}">Edit Profile</a>
+  </div>
+  
+  {% if favorites %}
+    <div class="favorites-grid">
+      {% for favorite in favorites %}
+      <div class="favorite-card">
+        <form method="POST" action="{% url 'storefront:favorite_remove' favorite.product.id %}" style="display: inline;">
+          {% csrf_token %}
+          <button type="submit" class="remove-btn" title="Remove from favorites">×</button>
+        </form>
+        
+        <a href="{% url 'storefront:product_detail' id=favorite.product.id %}" style="text-decoration: none; color: inherit;">
+          {% if favorite.product.image %}
+          <img src="{{ favorite.product.image.url }}" alt="{{ favorite.product.name }}" class="favorite-image" style="height: 200px; object-fit: cover;">
+          {% else %}
+          <div class="favorite-image">📦</div>
+          {% endif %}
+          
+          <div class="favorite-info">
+            <div style="font-size: 12px; color: #667eea; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
+              {{ favorite.product.category.name }}
+            </div>
+            <div style="font-weight: 600; margin-bottom: 10px;">{{ favorite.product.name }}</div>
+            <div style="font-size: 20px; font-weight: 700; color: #667eea;">${{ favorite.product.price }}</div>
+            <div style="margin-top: 10px; font-size: 12px; color: #999;">
+              Added {{ favorite.created_at|date:"M d, Y" }}
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="background: white; padding: 60px 30px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <div style="font-size: 64px; margin-bottom: 20px;">❤️</div>
+      <h3 style="color: #666;">No favorites yet</h3>
+      <p style="color: #999;">Click the heart icon on products you love to save them here!</p>
+      <a href="{% url 'storefront:home' %}" style="display: inline-block; margin-top: 20px; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
+        Browse Products
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

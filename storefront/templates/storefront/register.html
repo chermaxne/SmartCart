@@ -56,6 +56,11 @@
     box-sizing: border-box;
   }
   
+  input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
+  }
+  
   input:focus, select:focus {
     outline: none;
     border-color: #4CAF50;
@@ -172,12 +177,13 @@
     {% endif %}
 
     <fieldset>
-      <legend>Profile Information</legend>
+      <legend>Profile Information (Optional - helps us personalize your experience)</legend>
       
       <div class="form-group">
         {{ customer_form.age.label_tag }}
         {{ customer_form.age }}
         {{ customer_form.age.errors }}
+        <span class="help-text">Must be 18 or older</span>
       </div>
 
       <div class="form-group">
@@ -187,15 +193,43 @@
       </div>
 
       <div class="form-group">
-        {{ customer_form.employment.label_tag }}
-        {{ customer_form.employment }}
-        {{ customer_form.employment.errors }}
+        {{ customer_form.employment_status.label_tag }}
+        {{ customer_form.employment_status }}
+        {{ customer_form.employment_status.errors }}
       </div>
 
       <div class="form-group">
-        {{ customer_form.income_range.label_tag }}
-        {{ customer_form.income_range }}
-        {{ customer_form.income_range.errors }}
+        {{ customer_form.occupation.label_tag }}
+        {{ customer_form.occupation }}
+        {{ customer_form.occupation.errors }}
+      </div>
+
+      <div class="form-group">
+        {{ customer_form.education.label_tag }}
+        {{ customer_form.education }}
+        {{ customer_form.education.errors }}
+      </div>
+
+      <div class="form-group">
+        {{ customer_form.household_size.label_tag }}
+        {{ customer_form.household_size }}
+        {{ customer_form.household_size.errors }}
+        <span class="help-text">Number of people in your household</span>
+      </div>
+
+      <div class="form-group">
+        <label>
+          {{ customer_form.has_children }}
+          Do you have children?
+        </label>
+        {{ customer_form.has_children.errors }}
+      </div>
+
+      <div class="form-group">
+        {{ customer_form.monthly_income_sgd.label_tag }}
+        {{ customer_form.monthly_income_sgd }}
+        {{ customer_form.monthly_income_sgd.errors }}
+        <span class="help-text">Monthly income in SGD</span>
       </div>
     </fieldset>
 

@@ -1,11 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Product, Customer, Category
+from .models import Product, Customer, Category, Favorite, Order, OrderItem
 from django.contrib import messages
 from .forms import UserRegisterForm, CustomerForm
 from decimal import Decimal
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.contrib.auth.decorators import login_required
 import logging
 
 # Import the simplified predictions_code module
@@ -66,7 +67,43 @@ def home_view(request):
     """
     Home page with personalized recommendations using new predictions_code module
     """
-    products = Product.objects.filter(is_active=True).order_by('-rating')
+    from django.db.models import Q
+    
+    # Get all categories for the filter
+    all_categories = Category.objects.all().order_by('name')
+    
+    # Start with active products
+    products = Product.objects.filter(is_active=True)
+    
+    # Category filter
+    category_filter = request.GET.get('category', '').strip()
+    if category_filter:
+        products = products.filter(category__id=category_filter)
+    
+    # Search functionality
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        products = products.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(sku__icontains=search_query) |
+            Q(category__name__icontains=search_query)
+        )
+    
+    # Sorting
+    sort_option = request.GET.get('sort', '')
+    if sort_option == 'name-asc':
+        products = products.order_by('name')
+    elif sort_option == 'name-desc':
+        products = products.order_by('-name')
+    elif sort_option == 'price-asc':
+        products = products.order_by('price')
+    elif sort_option == 'price-desc':
+        products = products.order_by('-price')
+    elif sort_option == 'rating-desc':
+        products = products.order_by('-rating')
+    else:
+        products = products.order_by('-rating')  # Default sort
     
     recommended_products = None
     predicted_category = None
@@ -104,6 +141,10 @@ def home_view(request):
         'products': products,
         'recommended_products': recommended_products,
         'predicted_category': predicted_category,
+        'search_query': search_query,
+        'sort_option': sort_option,
+        'all_categories': all_categories,
+        'category_filter': category_filter,
     })
 
 def product_detail(request, id):
@@ -141,9 +182,12 @@ def product_detail(request, id):
 # -------------------------
 @require_POST
 def cart_add(request, product_id):
-    """Add product to cart and redirect to cart page"""
+    """Add product to cart and redirect to cart page (or return JSON for AJAX)"""
     cart = _cart_dict(request)
     qty = int(request.POST.get('quantity', 1))
+    
+    # Check if this is an AJAX request
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     
     try:
         product = Product.objects.get(id=product_id)
@@ -153,12 +197,25 @@ def cart_add(request, product_id):
         cart[str(product_id)] = old_qty + qty
         request.session.modified = True
         
+        # If AJAX request, return JSON
+        if is_ajax:
+            return JsonResponse({
+                'status': 'success',
+                'message': f'Added {product.name} to cart',
+                'cart_count': sum(int(q) for q in cart.values())
+            })
+        
         if old_qty > 0:
             messages.success(request, f'Updated {product.name} quantity to {cart[str(product_id)]}')
         else:
             messages.success(request, f'✓ Added {product.name} to cart')
             
     except Product.DoesNotExist:
+        if is_ajax:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Product not found'
+            }, status=404)
         messages.error(request, 'Product not found')
     
     return redirect('storefront:cart')
@@ -343,11 +400,66 @@ def checkout(request):
         print(f"DEBUG CHECKOUT: No cart_skus (cart_skus={cart_skus})")
 
     if request.method == "POST":
-        # Process order
-        messages.success(request, "🎉 Order placed successfully! Thank you for shopping with us.")
-        request.session['cart'] = {}  # clear cart
-        request.session['promo_code'] = None  # clear promo
-        return redirect("storefront:home")
+        # Create the order
+        try:
+            # Get customer
+            if request.user.is_authenticated:
+                try:
+                    customer = Customer.objects.get(username=request.user.username)
+                except Customer.DoesNotExist:
+                    messages.error(request, "Customer profile not found. Please complete your profile.")
+                    return redirect("storefront:home")
+            else:
+                messages.error(request, "Please login to place an order.")
+                return redirect("storefront:login")
+            
+            # Check stock availability before processing order
+            for item in order_items:
+                if item['product'].stock < int(item['quantity']):
+                    messages.error(request, f"Sorry, {item['product'].name} only has {item['product'].stock} in stock. Please update your cart.")
+                    return redirect("storefront:cart")
+            
+            # Get form data
+            shipping_address = f"{request.POST.get('address', '')}, {request.POST.get('city', '')}, {request.POST.get('state', '')} {request.POST.get('zip', '')}, {request.POST.get('country', '')}"
+            payment_method = request.POST.get('payment_method', 'card')
+            
+            # Create Order object
+            order = Order.objects.create(
+                customer=customer,
+                total_amount=total,
+                shipping_address=shipping_address,
+                payment_method=payment_method,
+                completed=True  # Mark as completed since it's a mock payment
+            )
+            
+            # Create OrderItem objects for each product and reduce stock
+            for item in order_items:
+                # Create order item
+                OrderItem.objects.create(
+                    order=order,
+                    product=item['product'],
+                    quantity=item['quantity'],
+                    price=item['product'].price
+                )
+                
+                # Reduce stock quantity
+                product = item['product']
+                product.stock -= int(item['quantity'])
+                if product.stock < 0:
+                    product.stock = 0  # Prevent negative stock
+                product.save()
+            
+            # Clear cart and promo code
+            request.session['cart'] = {}
+            request.session['promo_code'] = None
+            
+            messages.success(request, f"🎉 Order #{order.id} placed successfully! Thank you for shopping with us.")
+            return redirect("storefront:profile_orders")
+            
+        except Exception as e:
+            logger.error(f"Order creation error: {e}", exc_info=True)
+            messages.error(request, "There was an error processing your order. Please try again.")
+            return redirect("storefront:checkout")
 
     return render(request, "storefront/checkout.html", {
         "cart_items": order_items,
@@ -452,3 +564,143 @@ def logout_view(request):
     auth_logout(request)
     messages.success(request, "You have been logged out successfully.")
     return redirect('storefront:home')
+
+# -------------------------
+# Favorites/Wishlist
+# -------------------------
+@login_required
+@require_POST
+def favorite_toggle(request, product_id):
+    """Toggle favorite status for a product"""
+    try:
+        product = get_object_or_404(Product, id=product_id)
+        favorite, created = Favorite.objects.get_or_create(
+            customer=request.user,
+            product=product
+        )
+        
+        if not created:
+            # Already exists, so remove it
+            favorite.delete()
+            return JsonResponse({
+                'status': 'removed',
+                'message': f'Removed {product.name} from favorites'
+            })
+        else:
+            # Newly created
+            return JsonResponse({
+                'status': 'added',
+                'message': f'Added {product.name} to favorites'
+            })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=400)
+
+@login_required
+def check_favorite(request, product_id):
+    """Check if a product is favorited by current user"""
+    is_favorited = Favorite.objects.filter(
+        customer=request.user,
+        product_id=product_id
+    ).exists()
+    
+    return JsonResponse({'is_favorited': is_favorited})
+
+# -------------------------
+# Profile Views
+# -------------------------
+@login_required
+def profile_view(request):
+    """Profile dashboard"""
+    customer = request.user
+    
+    # Get statistics
+    total_orders = Order.objects.filter(customer=customer).count()
+    total_favorites = Favorite.objects.filter(customer=customer).count()
+    
+    # Get recent orders
+    recent_orders = Order.objects.filter(customer=customer).order_by('-created_at')[:5]
+    
+    return render(request, 'storefront/profile.html', {
+        'total_orders': total_orders,
+        'total_favorites': total_favorites,
+        'recent_orders': recent_orders,
+    })
+
+@login_required
+def profile_orders(request):
+    """Order history"""
+    try:
+        customer = Customer.objects.get(username=request.user.username)
+        orders = Order.objects.filter(customer=customer).order_by('-created_at')
+    except Customer.DoesNotExist:
+        orders = []
+    
+    # Calculate totals for each order
+    orders_with_totals = []
+    for order in orders:
+        items = order.items.all()
+        # Add item_total to each item for display
+        items_with_totals = []
+        for item in items:
+            item_total = item.price * item.quantity
+            items_with_totals.append({
+                'item': item,
+                'item_total': item_total,
+            })
+        
+        # Use the stored total_amount from the order
+        orders_with_totals.append({
+            'order': order,
+            'items': items_with_totals,
+            'total': order.total_amount,
+        })
+    
+    return render(request, 'storefront/profile_orders.html', {
+        'orders_with_totals': orders_with_totals,
+    })
+
+@login_required
+def profile_favorites(request):
+    """Favorites/Wishlist"""
+    try:
+        customer = Customer.objects.get(username=request.user.username)
+        favorites = Favorite.objects.filter(customer=customer).select_related('product')
+    except Customer.DoesNotExist:
+        favorites = []
+    
+    return render(request, 'storefront/profile_favorites.html', {
+        'favorites': favorites,
+    })
+
+@login_required
+def profile_edit(request):
+    """Edit profile"""
+    if request.method == 'POST':
+        form = CustomerForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '✓ Profile updated successfully!')
+            return redirect('storefront:profile')
+    else:
+        form = CustomerForm(instance=request.user)
+    
+    return render(request, 'storefront/profile_edit.html', {
+        'form': form,
+    })
+
+@login_required
+@require_POST
+def favorite_remove(request, product_id):
+    """Remove a product from favorites"""
+    try:
+        favorite = Favorite.objects.get(customer=request.user, product_id=product_id)
+        product_name = favorite.product.name
+        favorite.delete()
+        messages.success(request, f'Removed {product_name} from favorites')
+    except Favorite.DoesNotExist:
+        messages.error(request, 'Product not in favorites')
+    
+    return redirect('storefront:profile_favorites')

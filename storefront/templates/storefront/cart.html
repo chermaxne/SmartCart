@@ -504,7 +504,7 @@
           <div class="item-details">
             <h3>{{ item.product.name }}</h3>
             {% if item.product.category %}
-            <p>Category: {{ item.product.category }}</p>
+            <p>Category: {{ item.product.category.name }}{% if item.product.subcategory %} / {{ item.product.subcategory }}{% endif %}</p>
             {% endif %}
             {% if item.product.stock %}
             <span class="item-stock {% if item.product.stock == 0 %}out{% elif item.product.stock < 5 %}low{% endif %}">

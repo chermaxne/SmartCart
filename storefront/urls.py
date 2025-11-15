@@ -17,4 +17,15 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('accounts/login/', views.login, name='login'),
     path('accounts/logout/', views.logout_view, name='logout'),
+    
+    # Favorites/Wishlist
+    path('favorite/toggle/<int:product_id>/', views.favorite_toggle, name='favorite_toggle'),
+    path('favorite/check/<int:product_id>/', views.check_favorite, name='check_favorite'),
+    path('favorite/remove/<int:product_id>/', views.favorite_remove, name='favorite_remove'),
+    
+    # Profile
+    path('profile/', views.profile_view, name='profile'),
+    path('profile/orders/', views.profile_orders, name='profile_orders'),
+    path('profile/favorites/', views.profile_favorites, name='profile_favorites'),
+    path('profile/edit/', views.profile_edit, name='profile_edit'),
 ]

@@ -1,0 +1,183 @@
+{% extends "storefront/base.html" %}
+{% load static %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+  .profile-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+  
+  .profile-nav {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+  
+  .profile-nav a {
+    padding: 12px 24px;
+    background: white;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #667eea;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+  
+  .profile-nav a:hover, .profile-nav a.active {
+    background: #667eea;
+    color: white;
+  }
+  
+  .form-container {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    max-width: 600px;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+  
+  .form-group input:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+  
+  .btn-save {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .btn-save:hover {
+    background: #5568d3;
+  }
+  
+  .btn-cancel {
+    background: #f8f9fa;
+    color: #666;
+    border: 1px solid #ddd;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    margin-left: 10px;
+    transition: all 0.3s;
+  }
+  
+  .btn-cancel:hover {
+    background: #e9ecef;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+  <h1 style="margin-bottom: 30px;">Edit Profile</h1>
+  
+  <div class="profile-nav">
+    <a href="{% url 'storefront:profile' %}">Dashboard</a>
+    <a href="{% url 'storefront:profile_orders' %}">Order History</a>
+    <a href="{% url 'storefront:profile_favorites' %}">Favorites</a>
+    <a href="{% url 'storefront:profile_edit' %}" class="active">Edit Profile</a>
+  </div>
+  
+  <div class="form-container">
+    <form method="POST">
+      {% csrf_token %}
+      
+      <div class="form-group">
+        <label for="id_first_name">First Name</label>
+        {{ form.first_name }}
+      </div>
+      
+      <div class="form-group">
+        <label for="id_last_name">Last Name</label>
+        {{ form.last_name }}
+      </div>
+      
+      <div class="form-group">
+        <label for="id_email">Email</label>
+        {{ form.email }}
+      </div>
+      
+      <div class="form-group">
+        <label for="id_age">Age</label>
+        {{ form.age }}
+      </div>
+      
+      <div class="form-group">
+        <label for="id_gender">Gender</label>
+        {{ form.gender }}
+      </div>
+      
+      <div class="form-group">
+        <label for="id_occupation">Occupation</label>
+        {{ form.occupation }}
+      </div>
+      
+      <div class="form-group">
+        <label for="id_education">Education</label>
+        {{ form.education }}
+      </div>
+      
+      <div class="form-group">
+        <label for="id_household_size">Household Size</label>
+        {{ form.household_size }}
+      </div>
+      
+      <div class="form-group">
+        <label>
+          {{ form.has_children }}
+          Has Children
+        </label>
+      </div>
+      
+      <div class="form-group">
+        <label for="id_monthly_income_sgd">Monthly Income (SGD)</label>
+        {{ form.monthly_income_sgd }}
+      </div>
+      
+      <div style="margin-top: 30px;">
+        <button type="submit" class="btn-save">Save Changes</button>
+        <a href="{% url 'storefront:profile' %}" class="btn-cancel">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

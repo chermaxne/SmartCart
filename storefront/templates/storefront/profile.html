@@ -1,0 +1,196 @@
+{% extends "storefront/base.html" %}
+{% load static %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+  .profile-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+  
+  .profile-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+  }
+  
+  .profile-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 32px;
+  }
+  
+  .profile-header p {
+    margin: 0;
+    opacity: 0.9;
+  }
+  
+  .profile-nav {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+  
+  .profile-nav a {
+    padding: 12px 24px;
+    background: white;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #667eea;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+  
+  .profile-nav a:hover, .profile-nav a.active {
+    background: #667eea;
+    color: white;
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+  
+  .stat-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  
+  .stat-card .icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+  }
+  
+  .stat-card .number {
+    font-size: 36px;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 5px;
+  }
+  
+  .stat-card .label {
+    color: #666;
+    font-size: 14px;
+  }
+  
+  .recent-orders {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .recent-orders h2 {
+    margin: 0 0 20px 0;
+    font-size: 24px;
+  }
+  
+  .order-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .order-item:last-child {
+    border-bottom: none;
+  }
+  
+  .order-date {
+    color: #666;
+    font-size: 14px;
+  }
+  
+  .order-status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .order-status.completed {
+    background: #d4edda;
+    color: #155724;
+  }
+  
+  .order-status.pending {
+    background: #fff3cd;
+    color: #856404;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+  <div class="profile-header">
+    <h1>Welcome, {{ user.username }}! 👋</h1>
+    <p>Manage your orders, favorites, and account settings</p>
+  </div>
+  
+  <div class="profile-nav">
+    <a href="{% url 'storefront:profile' %}" class="active">Dashboard</a>
+    <a href="{% url 'storefront:profile_orders' %}">Order History</a>
+    <a href="{% url 'storefront:profile_favorites' %}">Favorites</a>
+    <a href="{% url 'storefront:profile_edit' %}">Edit Profile</a>
+  </div>
+  
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="icon">📦</div>
+      <div class="number">{{ total_orders }}</div>
+      <div class="label">Total Orders</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="icon">❤️</div>
+      <div class="number">{{ total_favorites }}</div>
+      <div class="label">Favorite Products</div>
+    </div>
+  </div>
+  
+  {% if recent_orders %}
+  <div class="recent-orders">
+    <h2>Recent Orders</h2>
+    {% for order in recent_orders %}
+    <div class="order-item">
+      <div>
+        <div><strong>Order #{{ order.id }}</strong></div>
+        <div class="order-date">{{ order.created_at|date:"F d, Y" }}</div>
+      </div>
+      <div>
+        <span class="order-status {% if order.completed %}completed{% else %}pending{% endif %}">
+          {% if order.completed %}Completed{% else %}Pending{% endif %}
+        </span>
+      </div>
+    </div>
+    {% endfor %}
+    <div style="margin-top: 20px; text-align: center;">
+      <a href="{% url 'storefront:profile_orders' %}" style="color: #667eea; text-decoration: none; font-weight: 600;">
+        View All Orders →
+      </a>
+    </div>
+  </div>
+  {% else %}
+  <div class="recent-orders" style="text-align: center; padding: 60px 30px;">
+    <div style="font-size: 64px; margin-bottom: 20px;">📦</div>
+    <h3 style="color: #666;">No orders yet</h3>
+    <p style="color: #999;">Start shopping to see your orders here!</p>
+    <a href="{% url 'storefront:home' %}" style="display: inline-block; margin-top: 20px; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
+      Browse Products
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

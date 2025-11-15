@@ -1,0 +1,168 @@
+{% extends "storefront/base.html" %}
+{% load static %}
+
+{% block title %}Order History{% endblock %}
+
+{% block extra_css %}
+<style>
+  .profile-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+  
+  .profile-nav {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+  
+  .profile-nav a {
+    padding: 12px 24px;
+    background: white;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #667eea;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+  
+  .profile-nav a:hover, .profile-nav a.active {
+    background: #667eea;
+    color: white;
+  }
+  
+  .order-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  
+  .order-header {
+    background: #f8f9fa;
+    padding: 20px;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .order-items {
+    padding: 20px;
+  }
+  
+  .order-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .order-item:last-child {
+    border-bottom: none;
+  }
+  
+  .item-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #f8f9fa;
+  }
+  
+  .item-info {
+    flex: 1;
+  }
+  
+  .order-status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .order-status.completed {
+    background: #d4edda;
+    color: #155724;
+  }
+  
+  .order-status.pending {
+    background: #fff3cd;
+    color: #856404;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+  <h1 style="margin-bottom: 30px;">Order History</h1>
+  
+  <div class="profile-nav">
+    <a href="{% url 'storefront:profile' %}">Dashboard</a>
+    <a href="{% url 'storefront:profile_orders' %}" class="active">Order History</a>
+    <a href="{% url 'storefront:profile_favorites' %}">Favorites</a>
+    <a href="{% url 'storefront:profile_edit' %}">Edit Profile</a>
+  </div>
+  
+  {% if orders_with_totals %}
+    {% for order_data in orders_with_totals %}
+    <div class="order-card">
+      <div class="order-header">
+        <div>
+          <strong>Order #{{ order_data.order.id }}</strong>
+          <div style="color: #666; font-size: 14px; margin-top: 5px;">
+            {{ order_data.order.created_at|date:"F d, Y - g:i A" }}
+          </div>
+        </div>
+        <div>
+          {% if order_data.order.completed %}
+          <span class="order-status completed">Completed</span>
+          {% else %}
+          <span class="order-status pending">Pending</span>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="order-items">
+        {% for item_data in order_data.items %}
+        <div class="order-item">
+          {% if item_data.item.product.image %}
+          <img src="{{ item_data.item.product.image.url }}" alt="{{ item_data.item.product.name }}" class="item-image">
+          {% else %}
+          <div class="item-image" style="display: flex; align-items: center; justify-content: center; font-size: 32px;">📦</div>
+          {% endif %}
+          
+          <div class="item-info">
+            <div style="font-weight: 600; margin-bottom: 5px;">{{ item_data.item.product.name }}</div>
+            <div style="color: #666; font-size: 14px;">Quantity: {{ item_data.item.quantity }}</div>
+            <div style="color: #667eea; font-weight: 600; margin-top: 5px;">
+              ${{ item_data.item.price }} × {{ item_data.item.quantity }} = ${{ item_data.item_total }}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      
+      <div class="order-total">
+        Total: ${{ order_data.total }}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div style="background: white; padding: 60px 30px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <div style="font-size: 64px; margin-bottom: 20px;">📦</div>
+      <h3 style="color: #666;">No orders yet</h3>
+      <p style="color: #999;">Start shopping to see your order history here!</p>
+      <a href="{% url 'storefront:home' %}" style="display: inline-block; margin-top: 20px; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
+        Browse Products
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
