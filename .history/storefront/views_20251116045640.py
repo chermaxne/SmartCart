@@ -468,6 +468,7 @@ def cart_view(request):
         total_price = (p.price * int(qty)).quantize(Decimal('0.01'))
         subtotal += total_price
         
+<<<<<<< Updated upstream
         # Get "Complete the Set" recommendations for this specific product
         item_recommendations = []
         try:
@@ -479,13 +480,21 @@ def cart_view(request):
                 ).exclude(id=p.id)[:3])
         except Exception as e:
             logger.error(f"Complete the set for product {p.sku} error: {e}", exc_info=True)
+=======
+        # Get "Complete the Set" recommendations for this specific item
+        complete_the_set = get_frequently_bought_together(p.sku, top_n=6)
+>>>>>>> Stashed changes
         
         order_items.append({
             'id': p.id,
             'product': p,
             'quantity': int(qty),
             'total_price': total_price,
+<<<<<<< Updated upstream
             'complete_the_set': item_recommendations,
+=======
+            'complete_the_set': complete_the_set,
+>>>>>>> Stashed changes
         })
         cart_skus.append(p.sku)
 

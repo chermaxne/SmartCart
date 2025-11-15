@@ -14,12 +14,16 @@ import logging
 
 # Import the simplified predictions_code module
 from predictions_code.predict_category import predict_customer_category
+<<<<<<< Updated upstream
 from predictions_code.predict_products import (
     get_product_recommendations, 
     get_product_recommendations_by_skus,
     get_frequently_bought_together,
     get_complete_the_set
 )
+=======
+from predictions_code.predict_products import get_product_recommendations, get_product_recommendations_by_skus, get_frequently_bought_together, get_complete_the_set
+>>>>>>> Stashed changes
 
 logger = logging.getLogger(__name__)
 
@@ -346,6 +350,7 @@ def product_detail(request, id):
     # Get "Frequently Bought Together" recommendations
     frequently_bought_together = []
     try:
+<<<<<<< Updated upstream
         # Use the new get_frequently_bought_together function
         recommended_skus = get_frequently_bought_together(product.sku, top_n=4)
         
@@ -354,6 +359,10 @@ def product_detail(request, id):
                 sku__in=recommended_skus,
                 is_active=True
             )[:4]
+=======
+        # Use association rules to find frequently bought together products
+        related_products = get_frequently_bought_together(product.sku, top_n=4)
+>>>>>>> Stashed changes
     except Exception as e:
         logger.error(f"Frequently bought together error in product_detail: {e}", exc_info=True)
         # Fallback: same category products
@@ -468,6 +477,7 @@ def cart_view(request):
         total_price = (p.price * int(qty)).quantize(Decimal('0.01'))
         subtotal += total_price
         
+<<<<<<< Updated upstream
         # Get "Complete the Set" recommendations for this specific product
         item_recommendations = []
         try:
@@ -479,13 +489,21 @@ def cart_view(request):
                 ).exclude(id=p.id)[:3])
         except Exception as e:
             logger.error(f"Complete the set for product {p.sku} error: {e}", exc_info=True)
+=======
+        # Get "Complete the Set" recommendations for this specific item
+        complete_the_set = get_frequently_bought_together(p.sku, top_n=6)
+>>>>>>> Stashed changes
         
         order_items.append({
             'id': p.id,
             'product': p,
             'quantity': int(qty),
             'total_price': total_price,
+<<<<<<< Updated upstream
             'complete_the_set': item_recommendations,
+=======
+            'complete_the_set': complete_the_set,
+>>>>>>> Stashed changes
         })
         cart_skus.append(p.sku)
 
