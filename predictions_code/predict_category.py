@@ -20,7 +20,7 @@ def predict_customer_category(customer):
     """
     try:
         # Load the model
-        model_path = os.path.join(settings.BASE_DIR, 'ml_models', 'b2c_customers_100.joblib')
+        model_path = os.path.join(settings.BASE_DIR, 'AuroraMartProj', 'ml_models', 'b2c_customers_100.joblib')
         model = joblib.load(model_path)
         
         # Prepare customer data

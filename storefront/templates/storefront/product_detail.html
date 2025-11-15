@@ -70,8 +70,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 120px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+  }
+
+  .image-placeholder svg {
+    width: 120px;
+    height: 120px;
+    opacity: 0.15;
   }
 
   .wishlist-btn {
@@ -411,7 +416,6 @@
     height: 45px;
     text-align: center;
     border: none;
-    border-left: 2px solid #ddd;
     border-right: 2px solid #ddd;
     font-weight: 600;
     font-size: 16px;
@@ -424,12 +428,12 @@
   }
 
   .add-to-cart-btn {
-    flex: 2;
+    flex: 1;
     padding: 18px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #050a2b;
     color: white;
     border: none;
-    border-radius: 10px;
+    border-radius: 25px;
     font-size: 18px;
     font-weight: 700;
     cursor: pointer;
@@ -449,9 +453,9 @@
     flex: 1;
     padding: 18px;
     background: white;
-    color: #667eea;
-    border: 2px solid #667eea;
-    border-radius: 10px;
+    color: #050a2b;
+    border: 2px solid #050a2b;
+    border-radius: 25px;
     font-size: 18px;
     font-weight: 700;
     cursor: pointer;
@@ -461,6 +465,7 @@
   .buy-now-btn:hover {
     background: #667eea;
     color: white;
+    border-color: #667eea;
   }
 
   .product-features {
@@ -539,7 +544,6 @@
     border-bottom: 3px solid transparent;
     background: none;
     border-top: none;
-    border-left: none;
     border-right: none;
   }
 
@@ -880,29 +884,11 @@
         {% if product.image %}
           <img src="{{ product.image.url }}" alt="{{ product.name }}" class="main-image" id="mainImage">
         {% else %}
-          <div class="image-placeholder">📦</div>
-        {% endif %}
-      </div>
-
-      <div class="thumbnail-gallery">
-        {% if product.image %}
-          <div class="thumbnail active" onclick="changeImage('{{ product.image.url }}', this)">
-            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+          <div class="image-placeholder">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="#667eea"/>
+            </svg>
           </div>
-          <div class="thumbnail" onclick="changeImage('{{ product.image.url }}', this)">
-            <img src="{{ product.image.url }}" alt="{{ product.name }}">
-          </div>
-          <div class="thumbnail" onclick="changeImage('{{ product.image.url }}', this)">
-            <img src="{{ product.image.url }}" alt="{{ product.name }}">
-          </div>
-          <div class="thumbnail" onclick="changeImage('{{ product.image.url }}', this)">
-            <img src="{{ product.image.url }}" alt="{{ product.name }}">
-          </div>
-        {% else %}
-          <div class="thumbnail active">📦</div>
-          <div class="thumbnail">📦</div>
-          <div class="thumbnail">📦</div>
-          <div class="thumbnail">📦</div>
         {% endif %}
       </div>
     </div>
@@ -913,7 +899,6 @@
       {% elif product.on_sale %}
       <span class="product-badge sale">On Sale</span>
       {% else %}
-      <span class="product-badge">Featured</span>
       {% endif %}
 
       <h1 class="product-title">{{ product.name }}</h1>
@@ -972,11 +957,14 @@
 
       <div class="action-buttons">
         <!-- Add to Cart Form -->
-        <form method="POST" action="{% url 'storefront:cart_add' product.id %}" style="flex: 2;">
+        <form method="POST" action="{% url 'storefront:cart_add' product.id %}" style="flex: 1;">
           {% csrf_token %}
           <input type="hidden" name="quantity" value="1" id="cart-quantity">
           <button type="submit" class="add-to-cart-btn">
-            <span>🛒</span> Add to Cart
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            Add to Cart
           </button>
         </form>
 
@@ -988,19 +976,35 @@
 
       <div class="product-features">
         <div class="feature-item">
-          <span class="feature-icon">🚚</span>
+          <span class="feature-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+            </svg>
+          </span>
           <span>Free shipping over $50</span>
         </div>
         <div class="feature-item">
-          <span class="feature-icon">↩️</span>
+          <span class="feature-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+            </svg>
+          </span>
           <span>30-day returns</span>
         </div>
         <div class="feature-item">
-          <span class="feature-icon">🔒</span>
+          <span class="feature-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+          </span>
           <span>Secure checkout</span>
         </div>
         <div class="feature-item">
-          <span class="feature-icon">✓</span>
+          <span class="feature-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </span>
           <span>2-year warranty</span>
         </div>
       </div>
@@ -1033,7 +1037,9 @@
           {% if related.image %}
             <img src="{{ related.image.url }}" alt="{{ related.name }}">
           {% else %}
-            📦
+            <svg viewBox="0 0 24 24" fill="none" style="width: 60px; height: 60px; opacity: 0.15;">
+              <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="#667eea"/>
+            </svg>
           {% endif %}
         </div>
         <div class="related-product-info">

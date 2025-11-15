@@ -6,6 +6,7 @@ app_name = 'storefront'
 
 urlpatterns = [
     path('', views.home_view, name='home'),
+    path('shop/', views.shop_view, name='shop'),
     path('product/<int:id>/', views.product_detail, name='product_detail'),
     path('cart/', views.cart_view, name='cart'),
     path('cart/add/<int:product_id>/', views.cart_add, name='cart_add'),
@@ -28,4 +29,5 @@ urlpatterns = [
     path('profile/orders/', views.profile_orders, name='profile_orders'),
     path('profile/favorites/', views.profile_favorites, name='profile_favorites'),
     path('profile/edit/', views.profile_edit, name='profile_edit'),
+    path('profile/change-password/', views.change_password, name='change_password'),
 ]

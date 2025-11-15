@@ -42,7 +42,7 @@
   .cart-items-header {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr 1fr 50px;
-    padding: 15px 0;
+    padding: 20px 25px;
     border-bottom: 2px solid #f0f0f0;
     font-weight: 600;
     color: #666;
@@ -55,9 +55,10 @@
     display: grid;
     grid-template-columns: 2fr 1fr 1fr 1fr 50px;
     align-items: center;
-    padding: 25px 0;
+    padding: 35px 25px;
     border-bottom: 1px solid #f0f0f0;
     transition: background 0.3s;
+    gap: 30px;
   }
 
   .cart-item:hover {
@@ -87,6 +88,12 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+
+  .item-image svg {
+    width: 60px;
+    height: 60px;
+    opacity: 0.15;
   }
 
   .item-details h3 {
@@ -264,7 +271,7 @@
   .checkout-btn {
     width: 100%;
     padding: 16px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #5568d3;
     color: white;
     border: none;
     border-radius: 8px;
@@ -339,7 +346,7 @@
   .shop-now-btn {
     display: inline-block;
     padding: 14px 40px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #5568d3;
     color: white;
     text-decoration: none;
     border-radius: 8px;
@@ -435,6 +442,35 @@
     border-color: #667eea;
   }
 
+  .complete-set-card {
+    transition: all 0.3s;
+  }
+
+  .complete-set-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    border-color: #667eea !important;
+  }
+
+  .item-complete-set {
+    scrollbar-width: thin;
+    scrollbar-color: #667eea #f0f0f0;
+  }
+
+  .item-complete-set::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .item-complete-set::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 3px;
+  }
+
+  .item-complete-set::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 3px;
+  }
+
   @media (max-width: 968px) {
     .cart-content {
       grid-template-columns: 1fr;
@@ -498,7 +534,9 @@
             {% if item.product.image %}
               <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
             {% else %}
-              📦
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="#667eea"/>
+              </svg>
             {% endif %}
           </div>
           <div class="item-details">
@@ -541,6 +579,36 @@
           </form>
         </div>
       </div>
+
+      <!-- Complete the Set for this item -->
+      {% if item.complete_the_set %}
+      <div class="item-complete-set" style="grid-column: 1 / -1; padding: 0 25px 25px 25px; margin-top: -10px;">
+        <h4 style="font-size: 13px
+        ; color: #000000; margin-bottom: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">
+          Complete the Set:
+        </h4>
+        <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;">
+          {% for rec_product in item.complete_the_set %}
+          <div class="complete-set-card" style="min-width: 90px; max-width: 90px; background: white; border-radius: 10px; padding: 10px; border: 1px solid #f0f0f0; transition: all 0.3s; cursor: pointer;">
+            <a href="{% url 'storefront:product_detail' rec_product.id %}" style="text-decoration: none; color: inherit; display: block;">
+              <div style="width: 70px; height: 70px; margin: 0 auto 8px; background: linear-gradient(135deg, #f5f7fa 0%, #e3e8f0 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                {% if rec_product.image %}
+                  <img src="{{ rec_product.image.url }}" alt="{{ rec_product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                  <svg viewBox="0 0 24 24" fill="none" style="width: 35px; height: 35px; opacity: 0.3;">
+                    <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="#667eea"/>
+                  </svg>
+                {% endif %}
+              </div>
+              <h5 style="font-size: 11px; color: #333; margin-bottom: 4px; font-weight: 600; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; min-height: 28px;">{{ rec_product.name }}</h5>
+              <div style="font-size: 13px; font-weight: 700; color: #667eea;">${{ rec_product.price }}</div>
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
       {% endfor %}
     </div>
 
@@ -548,6 +616,16 @@
       <h2>Order Summary</h2>
 
       <div class="promo-section">
+        {% if promo_code %}
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #dcfce7; border-radius: 8px; margin-bottom: 15px;">
+          <span style="color: #166534; font-weight: 600;">✓ Promo code "{{ promo_code }}" applied</span>
+          <form method="post" action="{% url 'storefront:cart_apply_promo' %}" style="margin: 0;">
+            {% csrf_token %}
+            <input type="hidden" name="promo_code" value="">
+            <button type="submit" style="background: none; border: none; color: #dc2626; cursor: pointer; font-weight: 600; text-decoration: underline;">Remove</button>
+          </form>
+        </div>
+        {% else %}
         <form method="post" action="{% url 'storefront:cart_apply_promo' %}">
           {% csrf_token %}
           <div class="promo-input-group">
@@ -555,6 +633,7 @@
             <button type="submit" class="apply-promo-btn">Apply</button>
           </div>
         </form>
+        {% endif %}
       </div>
       
       <div class="summary-row">
@@ -562,10 +641,17 @@
         <span id="subtotal">${{ subtotal|default:"89.97" }}</span>
       </div>
 
+      {% if shipping > 0 %}
       <div class="summary-row">
         <span>Shipping</span>
-        <span id="shipping">${{ shipping|default:"9.99" }}</span>
+        <span id="shipping">${{ shipping }}</span>
       </div>
+      {% else %}
+      <div class="summary-row" style="color: #4CAF50;">
+        <span>Shipping</span>
+        <span>FREE</span>
+      </div>
+      {% endif %}
 
       <div class="summary-row">
         <span>Tax</span>
@@ -574,7 +660,7 @@
 
       {% if discount %}
       <div class="summary-row discount">
-        <span>Discount</span>
+        <span>Discount ({{ promo_code }})</span>
         <span>-${{ discount }}</span>
       </div>
       {% endif %}
@@ -593,7 +679,7 @@
       </a>
 
       <div class="secure-checkout-badge">
-        🔒 Secure Checkout
+        Secure Checkout
       </div>
     </div>
   </div>

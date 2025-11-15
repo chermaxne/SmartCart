@@ -6,32 +6,9 @@
 {% block extra_css %}
 <style>
   .profile-container {
-    max-width: 1200px;
-    margin: 40px auto;
-    padding: 0 20px;
-  }
-  
-  .profile-nav {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
-  }
-  
-  .profile-nav a {
-    padding: 12px 24px;
-    background: white;
-    border: 2px solid #667eea;
-    border-radius: 8px;
-    text-decoration: none;
-    color: #667eea;
-    font-weight: 600;
-    transition: all 0.3s;
-  }
-  
-  .profile-nav a:hover, .profile-nav a.active {
-    background: #667eea;
-    color: white;
+    max-width: 100%;
+    margin: 0;
+    padding: 40px 20px;
   }
   
   .form-container {
@@ -39,7 +16,18 @@
     padding: 40px;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    max-width: 600px;
+    max-width: 100%;
+  }
+  
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  
+  .form-group-full {
+    grid-column: 1 / -1;
   }
   
   .form-group {
@@ -54,7 +42,8 @@
   }
   
   .form-group input,
-  .form-group select {
+  .form-group select,
+  .form-group textarea {
     width: 100%;
     padding: 12px;
     border: 1px solid #ddd;
@@ -63,10 +52,16 @@
   }
   
   .form-group input:focus,
-  .form-group select:focus {
+  .form-group select:focus,
+  .form-group textarea:focus {
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+  
+  .form-group textarea {
+    resize: vertical;
+    min-height: 100px;
   }
   
   .btn-save {
@@ -103,6 +98,29 @@
   .btn-cancel:hover {
     background: #e9ecef;
   }
+  
+  .error-message {
+    color: #e74c3c;
+    font-size: 13px;
+    margin-top: 5px;
+    display: none;
+  }
+  
+  .form-group.error input,
+  .form-group.error select,
+  .form-group.error textarea {
+    border-color: #e74c3c;
+  }
+  
+  .form-group.error .error-message {
+    display: block;
+  }
+  
+  @media (max-width: 768px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -110,67 +128,155 @@
 <div class="profile-container">
   <h1 style="margin-bottom: 30px;">Edit Profile</h1>
   
-  <div class="profile-nav">
-    <a href="{% url 'storefront:profile' %}">Dashboard</a>
-    <a href="{% url 'storefront:profile_orders' %}">Order History</a>
-    <a href="{% url 'storefront:profile_favorites' %}">Favorites</a>
-    <a href="{% url 'storefront:profile_edit' %}" class="active">Edit Profile</a>
-  </div>
-  
   <div class="form-container">
     <form method="POST">
       {% csrf_token %}
       
-      <div class="form-group">
-        <label for="id_first_name">First Name</label>
-        {{ form.first_name }}
-      </div>
+      {% if form.errors %}
+        <div style="background: #fee; border: 1px solid #fcc; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+          <strong style="color: #c33;">Please correct the following errors:</strong>
+          <ul style="margin: 10px 0 0 0; padding-left: 20px; color: #c33;">
+            {% for field, errors in form.errors.items %}
+              {% for error in errors %}
+                <li>{{ field|title }}: {{ error }}</li>
+              {% endfor %}
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
       
-      <div class="form-group">
-        <label for="id_last_name">Last Name</label>
-        {{ form.last_name }}
-      </div>
-      
-      <div class="form-group">
-        <label for="id_email">Email</label>
-        {{ form.email }}
-      </div>
-      
-      <div class="form-group">
-        <label for="id_age">Age</label>
-        {{ form.age }}
-      </div>
-      
-      <div class="form-group">
-        <label for="id_gender">Gender</label>
-        {{ form.gender }}
-      </div>
-      
-      <div class="form-group">
-        <label for="id_occupation">Occupation</label>
-        {{ form.occupation }}
-      </div>
-      
-      <div class="form-group">
-        <label for="id_education">Education</label>
-        {{ form.education }}
-      </div>
-      
-      <div class="form-group">
-        <label for="id_household_size">Household Size</label>
-        {{ form.household_size }}
-      </div>
-      
-      <div class="form-group">
-        <label>
-          {{ form.has_children }}
-          Has Children
-        </label>
-      </div>
-      
-      <div class="form-group">
-        <label for="id_monthly_income_sgd">Monthly Income (SGD)</label>
-        {{ form.monthly_income_sgd }}
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="id_first_name">First Name *</label>
+          {{ form.first_name }}
+          <div class="error-message">First name is required</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="id_last_name">Last Name *</label>
+          {{ form.last_name }}
+          <div class="error-message">Last name is required</div>
+        </div>
+        
+        <div class="form-group form-group-full">
+          <label for="id_email">Email *</label>
+          {{ form.email }}
+          <div class="error-message">Please enter a valid email address</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="id_username">Username *</label>
+          {{ form.username }}
+          <small style="color: #999; display: block; margin-top: 5px;">This will be your login username</small>
+          <div class="error-message">Username is required</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="id_phone">Phone Number</label>
+          <input type="tel" id="id_phone" name="phone" value="{{ user.phone|default:'' }}" placeholder="+65 1234 5678">
+        </div>
+        
+        <div class="form-group">
+          <label for="id_age">Age</label>
+          <input type="number" id="id_age" name="age" value="{{ user.age|default:'' }}" min="18" max="100">
+        </div>
+        
+        <div class="form-group">
+          <label for="id_gender">Gender</label>
+          <select id="id_gender" name="gender">
+            <option value="">Prefer not to say</option>
+            <option value="Male" {% if user.gender == 'Male' %}selected{% endif %}>Male</option>
+            <option value="Female" {% if user.gender == 'Female' %}selected{% endif %}>Female</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="id_date_of_birth">Date of Birth</label>
+          <input type="date" id="id_date_of_birth" name="date_of_birth" value="{{ user.date_of_birth|date:'Y-m-d'|default:'' }}">
+        </div>
+        
+        <div class="form-group form-group-full">
+          <label for="id_address">Address</label>
+          <textarea id="id_address" name="address" placeholder="Enter your full address">{{ user.address|default:'' }}</textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="id_city">City</label>
+          <input type="text" id="id_city" name="city" value="{{ user.city|default:'' }}">
+        </div>
+        
+        <div class="form-group">
+          <label for="id_postal_code">Postal Code</label>
+          <input type="text" id="id_postal_code" name="postal_code" value="{{ user.postal_code|default:'' }}">
+        </div>
+        
+        <div class="form-group">
+          <label for="id_country">Country</label>
+          <select id="id_country" name="country">
+            <option value="">Select Country</option>
+            <option value="Singapore" {% if user.country == 'Singapore' %}selected{% endif %}>Singapore</option>
+            <option value="Malaysia" {% if user.country == 'Malaysia' %}selected{% endif %}>Malaysia</option>
+            <option value="Indonesia" {% if user.country == 'Indonesia' %}selected{% endif %}>Indonesia</option>
+            <option value="Thailand" {% if user.country == 'Thailand' %}selected{% endif %}>Thailand</option>
+            <option value="Philippines" {% if user.country == 'Philippines' %}selected{% endif %}>Philippines</option>
+            <option value="Vietnam" {% if user.country == 'Vietnam' %}selected{% endif %}>Vietnam</option>
+            <option value="Other" {% if user.country == 'Other' %}selected{% endif %}>Other</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="id_occupation">Occupation</label>
+          <select id="id_occupation" name="occupation">
+            <option value="">-- Select Occupation --</option>
+            <option value="Admin" {% if user.occupation == 'Admin' %}selected{% endif %}>Admin</option>
+            <option value="Education" {% if user.occupation == 'Education' %}selected{% endif %}>Education</option>
+            <option value="Sales" {% if user.occupation == 'Sales' %}selected{% endif %}>Sales</option>
+            <option value="Service" {% if user.occupation == 'Service' %}selected{% endif %}>Service</option>
+            <option value="Skilled Trades" {% if user.occupation == 'Skilled Trades' %}selected{% endif %}>Skilled Trades</option>
+            <option value="Tech" {% if user.occupation == 'Tech' %}selected{% endif %}>Tech</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="id_education">Education</label>
+          <select id="id_education" name="education">
+            <option value="">-- Select Education Level --</option>
+            <option value="Secondary" {% if user.education == 'Secondary' %}selected{% endif %}>Secondary School</option>
+            <option value="Diploma" {% if user.education == 'Diploma' %}selected{% endif %}>Diploma</option>
+            <option value="Bachelor" {% if user.education == 'Bachelor' %}selected{% endif %}>Bachelor's Degree</option>
+            <option value="Master" {% if user.education == 'Master' %}selected{% endif %}>Master's Degree</option>
+            <option value="Doctorate" {% if user.education == 'Doctorate' %}selected{% endif %}>Doctorate/PhD</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="id_employment_status">Employment Status</label>
+          <select id="id_employment_status" name="employment_status">
+            <option value="">-- Select Employment Status --</option>
+            <option value="Full-time" {% if user.employment_status == 'Full-time' %}selected{% endif %}>Full-time</option>
+            <option value="Part-time" {% if user.employment_status == 'Part-time' %}selected{% endif %}>Part-time</option>
+            <option value="Retired" {% if user.employment_status == 'Retired' %}selected{% endif %}>Retired</option>
+            <option value="Self-employed" {% if user.employment_status == 'Self-employed' %}selected{% endif %}>Self-employed</option>
+            <option value="Student" {% if user.employment_status == 'Student' %}selected{% endif %}>Student</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="id_household_size">Household Size</label>
+          <input type="number" id="id_household_size" name="household_size" value="{{ user.household_size|default:'' }}" min="1" max="10">
+        </div>
+        
+        <div class="form-group">
+          <label for="id_monthly_income_sgd">Monthly Income (SGD)</label>
+          <input type="number" id="id_monthly_income_sgd" name="monthly_income_sgd" value="{{ user.monthly_income_sgd|default:'' }}" step="0.01" min="0">
+        </div>
+        
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+            <input type="checkbox" id="id_has_children" name="has_children" {% if user.has_children %}checked{% endif %} style="width: auto;">
+            Has Children
+          </label>
+        </div>
       </div>
       
       <div style="margin-top: 30px;">
@@ -180,4 +286,94 @@
     </form>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    
+    // Get all input fields - both from Django form and manual inputs
+    const firstNameInput = document.querySelector('input[name="first_name"]');
+    const lastNameInput = document.querySelector('input[name="last_name"]');
+    const emailInput = document.querySelector('input[name="email"]');
+    const usernameInput = document.querySelector('input[name="username"]');
+    
+    // Check if fields exist
+    if (!firstNameInput || !lastNameInput || !emailInput || !usernameInput) {
+        console.error('Required form fields not found');
+        return;
+    }
+    
+    // Real-time validation
+    function validateField(input, validationFn) {
+        const formGroup = input.closest('.form-group');
+        
+        input.addEventListener('blur', function() {
+            if (!validationFn(input.value)) {
+                formGroup.classList.add('error');
+            } else {
+                formGroup.classList.remove('error');
+            }
+        });
+        
+        input.addEventListener('input', function() {
+            if (validationFn(input.value)) {
+                formGroup.classList.remove('error');
+            }
+        });
+    }
+    
+    // Validation functions
+    validateField(firstNameInput, value => value.trim().length > 0);
+    validateField(lastNameInput, value => value.trim().length > 0);
+    validateField(emailInput, value => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(value);
+    });
+    validateField(usernameInput, value => value.trim().length > 0);
+    
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Validate first name
+        if (!firstNameInput.value || firstNameInput.value.trim().length === 0) {
+            firstNameInput.closest('.form-group').classList.add('error');
+            isValid = false;
+        }
+        
+        // Validate last name
+        if (!lastNameInput.value || lastNameInput.value.trim().length === 0) {
+            lastNameInput.closest('.form-group').classList.add('error');
+            isValid = false;
+        }
+        
+        // Validate email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailInput.value || !emailRegex.test(emailInput.value)) {
+            emailInput.closest('.form-group').classList.add('error');
+            isValid = false;
+        }
+        
+        // Validate username
+        if (!usernameInput.value || usernameInput.value.trim().length === 0) {
+            usernameInput.closest('.form-group').classList.add('error');
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            
+            // Scroll to first error
+            const firstError = document.querySelector('.form-group.error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            // Show error message
+            alert('Please fill in all required fields correctly.');
+            return false;
+        }
+    });
+});
+</script>
 {% endblock %}

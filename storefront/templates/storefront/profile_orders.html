@@ -103,13 +103,6 @@
 <div class="profile-container">
   <h1 style="margin-bottom: 30px;">Order History</h1>
   
-  <div class="profile-nav">
-    <a href="{% url 'storefront:profile' %}">Dashboard</a>
-    <a href="{% url 'storefront:profile_orders' %}" class="active">Order History</a>
-    <a href="{% url 'storefront:profile_favorites' %}">Favorites</a>
-    <a href="{% url 'storefront:profile_edit' %}">Edit Profile</a>
-  </div>
-  
   {% if orders_with_totals %}
     {% for order_data in orders_with_totals %}
     <div class="order-card">

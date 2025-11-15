@@ -63,8 +63,8 @@
   
   input:focus, select:focus {
     outline: none;
-    border-color: #4CAF50;
-    box-shadow: 0 0 0 3px rgba(76,175,80,0.1);
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
   }
   
   .errorlist {
@@ -85,13 +85,12 @@
     padding: 12px;
     border-radius: 4px;
     margin-bottom: 20px;
-    border-left: 4px solid #d32f2f;
   }
   
   button[type="submit"] {
     width: 100%;
     padding: 12px;
-    background: #4CAF50;
+    background: #667eea;
     color: white;
     border: none;
     border-radius: 4px;
@@ -102,7 +101,7 @@
   }
   
   button[type="submit"]:hover {
-    background: #45a049;
+    background: #5568d3;
   }
   
   .help-text {
@@ -118,7 +117,7 @@
   }
   
   .login-link a {
-    color: #4CAF50;
+    color: #667eea;
     text-decoration: none;
     font-weight: 600;
   }
@@ -178,6 +177,13 @@
 
     <fieldset>
       <legend>Profile Information (Optional - helps us personalize your experience)</legend>
+      
+      <div class="form-group">
+        {{ customer_form.preferred_category.label_tag }}
+        {{ customer_form.preferred_category }}
+        {{ customer_form.preferred_category.errors }}
+        <span class="help-text">{{ customer_form.preferred_category.help_text }}</span>
+      </div>
       
       <div class="form-group">
         {{ customer_form.age.label_tag }}

@@ -23,3 +23,6 @@ __pycache__/
 
 # SQLite dev DB
 db.sqlite3
+
+# Django static files (auto-generated)
+staticfiles/

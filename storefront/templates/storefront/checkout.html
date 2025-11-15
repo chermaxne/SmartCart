@@ -108,7 +108,6 @@
     color: #333;
     margin-bottom: 20px;
     padding-bottom: 10px;
-    border-bottom: 2px solid #f0f0f0;
   }
   
   .form-row {
@@ -152,6 +151,22 @@
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  input.error {
+    border-color: #e53935;
+  }
+
+  input.error:focus {
+    box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1);
+  }
+
+  .error-message {
+    display: block;
+    color: #e53935;
+    font-size: 12px;
+    margin-top: 5px;
+    min-height: 18px;
   }
   
   .checkbox-group {
@@ -268,6 +283,96 @@
   
   .apply-btn:hover {
     background: #e0e0e0;
+  }
+  
+  /* Payment Tabs */
+  .payment-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0;
+  }
+
+  .payment-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    top: 1px;
+  }
+
+  .payment-tab:hover {
+    color: #374151;
+    background: #f9fafb;
+  }
+
+  .payment-tab.active {
+    color: #6366f1;
+    border-bottom-color: #6366f1;
+    background: white;
+  }
+
+  .payment-tab svg {
+    width: 20px;
+    height: 16px;
+  }
+
+  .payment-tab-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .payment-tab-more:hover {
+    color: #6b7280;
+    background: #f9fafb;
+  }
+
+  /* Payment Content */
+  .payment-content {
+    display: none;
+    padding: 20px 0;
+  }
+
+  .payment-content.active {
+    display: block;
+  }
+
+  /* Stripe Card Element Styling */
+  #card-element {
+    min-height: 40px;
+  }
+
+  .StripeElement {
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+  }
+
+  .StripeElement--focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+
+  .StripeElement--invalid {
+    border-color: #dc2626;
   }
   
   .payment-methods {
@@ -425,8 +530,13 @@
       grid-template-columns: 1fr;
     }
     
-    .payment-methods {
-      grid-template-columns: 1fr;
+    .payment-tabs {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .payment-tab {
+      flex-shrink: 0;
     }
   }
 </style>
@@ -466,27 +576,71 @@
             <div class="form-row">
               <div class="form-group">
                 <label>First Name <span class="required">*</span></label>
-                <input type="text" name="first_name" required>
+                <input type="text" name="first_name" id="first_name" required minlength="3" pattern="[A-Za-z\s]+" title="First name must be at least 3 characters and contain only letters">
+                <span class="error-message" id="first_name_error"></span>
               </div>
               <div class="form-group">
                 <label>Last Name <span class="required">*</span></label>
-                <input type="text" name="last_name" required>
+                <input type="text" name="last_name" id="last_name" required minlength="3" pattern="[A-Za-z\s]+" title="Last name must be at least 3 characters and contain only letters">
+                <span class="error-message" id="last_name_error"></span>
               </div>
             </div>
             
             <div class="form-group">
               <label>Email Address <span class="required">*</span></label>
-              <input type="email" name="email" required>
+              <input type="email" name="email" id="email" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" title="Please enter a valid email address">
+              <span class="error-message" id="email_error"></span>
             </div>
             
             <div class="form-group">
               <label>Phone Number <span class="required">*</span></label>
-              <input type="tel" name="phone" required>
+              <div style="display: flex; gap: 10px;">
+                <select name="country_code" id="country_code" required style="width: 120px; flex-shrink: 0;">
+                  <option value="+65" data-country="SG">+65 (SG)</option>
+                  <option value="+1" data-country="US">+1 (US)</option>
+                  <option value="+1" data-country="CA">+1 (CA)</option>
+                  <option value="+44" data-country="GB">+44 (GB)</option>
+                  <option value="+61" data-country="AU">+61 (AU)</option>
+                  <option value="+86" data-country="CN">+86 (CN)</option>
+                  <option value="+81" data-country="JP">+81 (JP)</option>
+                  <option value="+82" data-country="KR">+82 (KR)</option>
+                  <option value="+91" data-country="IN">+91 (IN)</option>
+                  <option value="+60" data-country="MY">+60 (MY)</option>
+                  <option value="+62" data-country="ID">+62 (ID)</option>
+                  <option value="+66" data-country="TH">+66 (TH)</option>
+                  <option value="+84" data-country="VN">+84 (VN)</option>
+                  <option value="+63" data-country="PH">+63 (PH)</option>
+                  <option value="+852" data-country="HK">+852 (HK)</option>
+                  <option value="+886" data-country="TW">+886 (TW)</option>
+                  <option value="+33" data-country="FR">+33 (FR)</option>
+                  <option value="+49" data-country="DE">+49 (DE)</option>
+                  <option value="+39" data-country="IT">+39 (IT)</option>
+                  <option value="+34" data-country="ES">+34 (ES)</option>
+                  <option value="+31" data-country="NL">+31 (NL)</option>
+                  <option value="+41" data-country="CH">+41 (CH)</option>
+                  <option value="+46" data-country="SE">+46 (SE)</option>
+                  <option value="+47" data-country="NO">+47 (NO)</option>
+                  <option value="+45" data-country="DK">+45 (DK)</option>
+                  <option value="+358" data-country="FI">+358 (FI)</option>
+                  <option value="+7" data-country="RU">+7 (RU)</option>
+                  <option value="+55" data-country="BR">+55 (BR)</option>
+                  <option value="+52" data-country="MX">+52 (MX)</option>
+                  <option value="+54" data-country="AR">+54 (AR)</option>
+                  <option value="+27" data-country="ZA">+27 (ZA)</option>
+                  <option value="+20" data-country="EG">+20 (EG)</option>
+                  <option value="+971" data-country="AE">+971 (AE)</option>
+                  <option value="+966" data-country="SA">+966 (SA)</option>
+                  <option value="+64" data-country="NZ">+64 (NZ)</option>
+                </select>
+                <input type="tel" name="phone" id="phone" required placeholder="1234 5678" pattern="^\d{4,14}$" title="Please enter a valid phone number (4-14 digits)" style="flex: 1;">
+              </div>
+              <span class="error-message" id="phone_error"></span>
             </div>
             
             <div class="form-group">
               <label>Street Address <span class="required">*</span></label>
-              <input type="text" name="address" required>
+              <input type="text" name="address" id="address" required>
+              <span class="error-message" id="address_error"></span>
             </div>
             
             <div class="form-row">
@@ -503,7 +657,8 @@
             <div class="form-row">
               <div class="form-group">
                 <label>ZIP/Postal Code <span class="required">*</span></label>
-                <input type="text" name="zip" required>
+                <input type="text" name="zip" id="zip" required pattern="^[0-9]{5,6}$" title="Please enter a valid postal code (5-6 digits)">
+                <span class="error-message" id="zip_error"></span>
               </div>
               <div class="form-group">
                 <label>Country <span class="required">*</span></label>
@@ -570,129 +725,192 @@
         <!-- Step 2: Payment Information -->
         <div class="step-content" data-step="2">
           <div class="form-section">
-            <h2>Payment Method</h2>
-            <p style="color: #666; margin-bottom: 20px;">Select your preferred payment method</p>
-            <div class="payment-methods">
-              <label class="payment-method active" data-payment="card">
-                <input type="radio" name="payment_method" value="card" checked>
-                <div class="payment-icon">💳</div>
-                <div class="payment-label">Credit/Debit Card</div>
-                <div class="payment-description">Visa, Mastercard, Amex</div>
-              </label>
+            <h2>Pay with</h2>
+            
+            <!-- Payment Method Tabs -->
+            <div class="payment-tabs">
+              <button class="payment-tab active" data-tab="card">
+                <svg width="20" height="16" viewBox="0 0 20 16" fill="currentColor">
+                  <rect x="0" y="0" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                  <rect x="0" y="4" width="20" height="4" fill="currentColor" opacity="0.3"/>
+                  <rect x="2" y="10" width="6" height="2" rx="1" fill="currentColor" opacity="0.5"/>
+                </svg>
+                Card
+              </button>
+              <button class="payment-tab" data-tab="paynow">
+                <img src="{% static 'images/paynow.png' %}" alt="PayNow" style="width: 40px; height: auto;">
+                PayNow
+              </button>
+              <button class="payment-tab" data-tab="applepay">
+                <img src="{% static 'images/applepay.png' %}" alt="Apple Pay" style="width: 40px; height: auto;">
+                Apple Pay
+              </button>
+              <button class="payment-tab" data-tab="paypal">
+                <img src="{% static 'images/paypal.png' %}" alt="PayPal" style="width: 40px; height: auto;">
+                PayPal
+              </button>
+            </div>
+
+            <!-- Card Payment Section -->
+            <div class="payment-content active" id="cardPayment">
+              <!-- Stripe Card Element will be inserted here -->
+              <div id="card-element" style="padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; background: white; margin-bottom: 16px;">
+                <!-- Stripe will inject the card input here -->
+              </div>
+              <div id="card-errors" role="alert" style="color: #dc2626; font-size: 13px; margin-top: 8px;"></div>
               
-              <label class="payment-method" data-payment="paynow">
-                <input type="radio" name="payment_method" value="paynow">
-                <div class="payment-icon">📱</div>
-                <div class="payment-label">PayNow</div>
-                <div class="payment-description">Instant bank transfer</div>
-              </label>
-              
-              <label class="payment-method" data-payment="paypal">
-                <input type="radio" name="payment_method" value="paypal">
-                <div class="payment-icon">🅿️</div>
-                <div class="payment-label">PayPal</div>
-                <div class="payment-description">Pay with PayPal account</div>
-              </label>
-              
-              <label class="payment-method" data-payment="applepay">
-                <input type="radio" name="payment_method" value="applepay">
-                <div class="payment-icon">🍎</div>
-                <div class="payment-label">Apple Pay</div>
-                <div class="payment-description">Fast & secure checkout</div>
-              </label>
+              <p style="font-size: 12px; color: #6b7280; margin-top: 12px;">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="#10b981" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+                  <path d="M7 0C3.1 0 0 3.1 0 7s3.1 7 7 7 7-3.1 7-7-3.1-7-7-7zm0 12.5c-3 0-5.5-2.5-5.5-5.5S4 1.5 7 1.5s5.5 2.5 5.5 5.5-2.5 5.5-5.5 5.5z"/>
+                  <path d="M5.3 6.3l1.2 1.2 3.2-3.2 1 1-4.2 4.2-2.2-2.2z" fill="#10b981"/>
+                </svg>
+                Accepts Visa, Mastercard, American Express
+              </p>
+              <input type="hidden" name="payment_method" value="card">
+            </div>
+
+            <!-- PayNow Payment Section -->
+            <div class="payment-content" id="paynowPayment">
+              <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                  <div style="background: white; width: 200px; height: 200px; margin: 0 auto; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <svg width="160" height="160" viewBox="0 0 160 160" fill="none">
+                      <rect width="160" height="160" fill="white"/>
+                      <g opacity="0.15">
+                        <rect x="20" y="20" width="20" height="20" fill="#1e40af"/>
+                        <rect x="60" y="20" width="20" height="20" fill="#1e40af"/>
+                        <rect x="100" y="20" width="20" height="20" fill="#1e40af"/>
+                        <rect x="140" y="20" width="20" height="20" fill="#1e40af"/>
+                        <rect x="20" y="60" width="20" height="20" fill="#1e40af"/>
+                        <rect x="100" y="60" width="20" height="20" fill="#1e40af"/>
+                        <rect x="140" y="60" width="20" height="20" fill="#1e40af"/>
+                        <rect x="20" y="100" width="20" height="20" fill="#1e40af"/>
+                        <rect x="60" y="100" width="20" height="20" fill="#1e40af"/>
+                        <rect x="140" y="100" width="20" height="20" fill="#1e40af"/>
+                        <rect x="20" y="140" width="20" height="20" fill="#1e40af"/>
+                        <rect x="60" y="140" width="20" height="20" fill="#1e40af"/>
+                        <rect x="100" y="140" width="20" height="20" fill="#1e40af"/>
+                      </g>
+                      <text x="80" y="85" text-anchor="middle" font-family="Arial" font-size="12" fill="#64748b">QR Code</text>
+                      <text x="80" y="100" text-anchor="middle" font-family="Arial" font-size="10" fill="#94a3b8">Scan to Pay</text>
+                    </svg>
+                  </div>
+                  <p style="margin-top: 12px; color: #64748b; font-size: 13px;">
+                    Scan with your banking app to complete payment
+                  </p>
+                </div>
+                
+                <div style="background: white; padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="color: #64748b; font-size: 13px;">PayNow UEN</span>
+                    <span style="color: #1e293b; font-weight: 600; font-size: 14px;">201234567A</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #64748b; font-size: 13px;">Recipient</span>
+                    <span style="color: #1e293b; font-weight: 600; font-size: 14px;">AuroraMart Pte Ltd</span>
+                  </div>
+                </div>
+                
+                <p style="font-size: 12px; color: #64748b; display: flex; align-items: start; gap: 6px;">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="#3b82f6" style="flex-shrink: 0; margin-top: 2px;">
+                    <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    <path d="M8 4v4.5l3 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
+                  <span>Payment is instant. QR code will be generated after you proceed to review.</span>
+                </p>
+              </div>
+              <input type="hidden" name="payment_method" value="paynow">
+            </div>
+
+            <!-- Apple Pay Section -->
+            <div class="payment-content" id="applepayPayment">
+              <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 32px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                <div style="margin-bottom: 20px;">
+                  <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                    <rect width="80" height="80" rx="16" fill="#000000"/>
+                    <path d="M48 22c-1.5 0-3 .6-4.2 1.7-.9.9-1.5 2.2-1.5 3.6 0 .3 0 .5.2.9 1.7.2 3.2-.4 4.4-1.5.9-.9 1.5-2.2 1.5-3.6-.2 0-.3 0-.4-.2-.5-.5-1.3-.9-1.9-.9zM39 24c-2.5 0-4.6 1.5-5.7 1.5-1.1 0-3-1.3-5-1.3-2.5 0-4.7 1.5-6.1 3.8-1.7 3-2.3 8.8 1.3 14 1.7 2.5 4 5.3 6.9 5.3 1.9 0 2.7-1.1 5.1-1.1s3 1.1 5.1 1.1c2.9 0 5-2.7 6.9-5.1 1.1-1.7 1.9-3.6 2.3-5.5-4.4-1.7-5.1-8.2-.8-10.5-1.7-2.5-4.4-4-7.3-4h-.7z" fill="white"/>
+                  </svg>
+                </div>
+                <h3 style="font-size: 18px; color: #1e293b; margin-bottom: 8px; font-weight: 600;">Apple Pay</h3>
+                <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">
+                  Fast, secure checkout with Face ID or Touch ID
+                </p>
+                
+                <div style="background: white; padding: 16px; border-radius: 8px; text-align: left;">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                      <circle cx="9" cy="9" r="9" fill="#dcfce7"/>
+                      <path d="M6 9l2 2 4-4" stroke="#10b981" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span style="font-size: 13px; color: #475569;">Secure biometric authentication</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                      <circle cx="9" cy="9" r="9" fill="#dcfce7"/>
+                      <path d="M6 9l2 2 4-4" stroke="#10b981" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span style="font-size: 13px; color: #475569;">No card details needed</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                      <circle cx="9" cy="9" r="9" fill="#dcfce7"/>
+                      <path d="M6 9l2 2 4-4" stroke="#10b981" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span style="font-size: 13px; color: #475569;">One-tap checkout</span>
+                  </div>
+                </div>
+              </div>
+              <input type="hidden" name="payment_method" value="applepay">
+            </div>
+
+            <!-- PayPal Section -->
+            <div class="payment-content" id="paypalPayment">
+              <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 32px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+                <div style="margin-bottom: 20px;">
+                  <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                    <rect width="80" height="80" rx="16" fill="#0070ba"/>
+                    <path d="M54 28c.8 4-.5 6.8-3.2 9.2-3 2.5-7 3.7-11.2 3.7h-4.5l-2 12.5h-6.2L32.5 23h11c4.2 0 7.2 1 9 3 1.5 1.5 2.2 3.5 1.5 6.5z" fill="white"/>
+                    <path d="M47 21c1 4.2-.5 7-3.5 9.7-3 2.5-7.2 3.7-11.7 3.7h-4.5l-2.2 13h-6.2L24 21h11.5c4.2 0 7.5 1 9.2 3.2 1.5 1.5 2.2 3.7 1.8 6.8z" fill="white" opacity="0.7"/>
+                  </svg>
+                </div>
+                <h3 style="font-size: 18px; color: #1e293b; margin-bottom: 8px; font-weight: 600;">PayPal</h3>
+                <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">
+                  You'll be redirected to PayPal to complete your purchase
+                </p>
+                
+                <div style="background: white; padding: 16px; border-radius: 8px; text-align: left;">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                      <circle cx="9" cy="9" r="9" fill="#dcfce7"/>
+                      <path d="M6 9l2 2 4-4" stroke="#10b981" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span style="font-size: 13px; color: #475569;">Buyer protection included</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                      <circle cx="9" cy="9" r="9" fill="#dcfce7"/>
+                      <path d="M6 9l2 2 4-4" stroke="#10b981" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span style="font-size: 13px; color: #475569;">Pay with balance or linked cards</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                      <circle cx="9" cy="9" r="9" fill="#dcfce7"/>
+                      <path d="M6 9l2 2 4-4" stroke="#10b981" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span style="font-size: 13px; color: #475569;">Fast & secure checkout</span>
+                  </div>
+                </div>
+              </div>
+              <input type="hidden" name="payment_method" value="paypal">
             </div>
           </div>
 
-          <!-- Card Payment Details -->
-          <div class="payment-details-section active" id="cardDetails">
-            <h3>💳 Card Details</h3>
-            <div class="form-group">
-              <label>Card Number <span class="required">*</span></label>
-              <input type="text" name="card_number" placeholder="1234 5678 9012 3456" maxlength="19">
-            </div>
-            
-            <div class="form-group">
-              <label>Cardholder Name <span class="required">*</span></label>
-              <input type="text" name="card_name" placeholder="John Doe">
-            </div>
-            
-            <div class="form-row">
-              <div class="form-group">
-                <label>Expiry Date <span class="required">*</span></label>
-                <input type="text" name="expiry" placeholder="MM/YY" maxlength="5">
-              </div>
-              <div class="form-group">
-                <label>CVV <span class="required">*</span></label>
-                <input type="text" name="cvv" placeholder="123" maxlength="4">
-              </div>
-            </div>
-            <p style="font-size: 12px; color: #888; margin-top: 10px;">
-              🔒 Your card information is encrypted and secure
-            </p>
-          </div>
-          
-          <!-- PayNow Details -->
-          <div class="payment-details-section" id="paynowDetails">
-            <h3>📱 PayNow Payment</h3>
-            <p style="color: #666; margin-bottom: 15px;">Scan the QR code with your banking app to complete payment</p>
-            <div style="text-align: center; padding: 20px;">
-              <div style="width: 200px; height: 200px; background: white; border: 2px solid #ddd; border-radius: 8px; margin: 0 auto; display: flex; align-items: center; justify-content: center;">
-                <div style="font-size: 120px; opacity: 0.3;">⊞</div>
-              </div>
-              <p style="margin-top: 15px; color: #888; font-size: 13px;">
-                QR code will be generated after clicking "Review Order"
-              </p>
-            </div>
-            <div style="background: white; padding: 15px; border-radius: 8px; margin-top: 15px;">
-              <p style="font-size: 13px; color: #666; margin-bottom: 8px;"><strong>PayNow UEN:</strong> 201234567A</p>
-              <p style="font-size: 13px; color: #666; margin-bottom: 8px;"><strong>Recipient:</strong> AuroraMart Pte Ltd</p>
-              <p style="font-size: 12px; color: #888; margin-top: 10px;">
-                💡 You can also manually enter this UEN in your banking app
-              </p>
-            </div>
-          </div>
-          
-          <!-- PayPal Details -->
-          <div class="payment-details-section" id="paypalDetails">
-            <h3>🅿️ PayPal Payment</h3>
-            <p style="color: #666; margin-bottom: 20px;">You will be redirected to PayPal to complete your payment securely</p>
-            <div style="background: white; padding: 25px; border-radius: 8px; text-align: center;">
-              <div style="font-size: 48px; margin-bottom: 15px;">🅿️</div>
-              <p style="color: #333; font-weight: 600; margin-bottom: 8px;">Pay with PayPal</p>
-              <p style="color: #888; font-size: 13px; margin-bottom: 15px;">
-                You'll be redirected to PayPal after clicking "Review Order"
-              </p>
-              <ul style="text-align: left; color: #666; font-size: 13px; margin: 0 auto; max-width: 300px;">
-                <li style="margin-bottom: 8px;">✓ Buyer protection included</li>
-                <li style="margin-bottom: 8px;">✓ No card details needed</li>
-                <li style="margin-bottom: 8px;">✓ Fast & secure checkout</li>
-              </ul>
-            </div>
-          </div>
-          
-          <!-- Apple Pay Details -->
-          <div class="payment-details-section" id="applepayDetails">
-            <h3>🍎 Apple Pay</h3>
-            <p style="color: #666; margin-bottom: 20px;">Complete your purchase using Apple Pay on your device</p>
-            <div style="background: white; padding: 25px; border-radius: 8px; text-align: center;">
-              <div style="font-size: 48px; margin-bottom: 15px;">🍎</div>
-              <p style="color: #333; font-weight: 600; margin-bottom: 8px;">Apple Pay</p>
-              <p style="color: #888; font-size: 13px; margin-bottom: 15px;">
-                Authenticate with Face ID, Touch ID, or passcode
-              </p>
-              <ul style="text-align: left; color: #666; font-size: 13px; margin: 0 auto; max-width: 300px;">
-                <li style="margin-bottom: 8px;">✓ No card details needed</li>
-                <li style="margin-bottom: 8px;">✓ Biometric authentication</li>
-                <li style="margin-bottom: 8px;">✓ One-tap checkout</li>
-              </ul>
-            </div>
-          </div>
-          
-          <div class="action-buttons">
-            <button type="button" class="btn btn-back" onclick="prevStep()">
-              ← Back
+          <div class="form-actions" style="margin-top: 30px;">
+            <button type="button" class="btn btn-secondary" onclick="prevStep()">
+              ← Back to Shipping
             </button>
-            <button type="button" class="btn btn-continue" onclick="nextStep()">
+            <button type="button" class="btn btn-primary" onclick="nextStep()">
               Review Order →
             </button>
           </div>
@@ -709,11 +927,17 @@
               </p>
             </div>
             
-            <div style="background: #f8f9ff; padding: 20px; border-radius: 8px;">
-              <h3 style="margin-bottom: 15px; color: #333;">Payment Method</h3>
-              <p style="color: #666;" id="reviewPayment">
+            <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; border: 2px solid #86efac;">
+              <h3 style="margin-bottom: 15px; color: #333; display: flex; align-items: center; gap: 8px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
+                  <rect x="2" y="5" width="20" height="14" rx="2"/>
+                  <path d="M2 10h20"/>
+                </svg>
+                Payment Method
+              </h3>
+              <div id="reviewPayment" style="font-size: 15px;">
                 <!-- Will be filled by JavaScript -->
-              </p>
+              </div>
             </div>
           </div>
           
@@ -753,7 +977,9 @@
               {% if item.product.image %}
                 <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
               {% else %}
-                📦
+                <svg viewBox="0 0 24 24" fill="none" style="width: 60px; height: 60px; opacity: 0.15;">
+                  <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="#667eea"/>
+                </svg>
               {% endif %}
             </div>
             <div class="item-details">
@@ -765,7 +991,11 @@
           {% endfor %}
         {% else %}
           <div class="cart-item">
-            <div class="item-image">📦</div>
+            <div class="item-image">
+              <svg viewBox="0 0 24 24" fill="none" style="width: 60px; height: 60px; opacity: 0.15;">
+                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="#667eea"/>
+              </svg>
+            </div>
             <div class="item-details">
               <div class="item-name">Sample Product</div>
               <div class="item-quantity">Quantity: 1</div>
@@ -773,7 +1003,11 @@
             </div>
           </div>
           <div class="cart-item">
-            <div class="item-image">📱</div>
+            <div class="item-image">
+              <svg viewBox="0 0 24 24" fill="none" style="width: 60px; height: 60px; opacity: 0.15;">
+                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="#667eea"/>
+              </svg>
+            </div>
             <div class="item-details">
               <div class="item-name">Another Product</div>
               <div class="item-quantity">Quantity: 2</div>
@@ -783,27 +1017,42 @@
         {% endif %}
       </div>
       
-      <div class="promo-code">
-        <input type="text" placeholder="Promo code" id="promoInput">
-        <button class="apply-btn" onclick="applyPromo()">Apply</button>
+      {% if promo_code %}
+      <div class="promo-code" style="background: #e8f5e9; border: 1px solid #4CAF50; padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span style="color: #2e7d32; font-weight: 500;">Promo code "{{ promo_code }}" applied</span>
+        </div>
+        <a href="{% url 'storefront:cart' %}" style="color: #2e7d32; text-decoration: none; font-size: 14px;">Change</a>
       </div>
+      {% else %}
+      <div class="promo-code">
+        <span style="color: #666; font-size: 14px;">Apply promo code on cart page</span>
+      </div>
+      {% endif %}
       
       <div class="summary-row">
         <span>Subtotal</span>
         <span id="subtotal">${{ subtotal|default:"89.97" }}</span>
       </div>
-      <div class="summary-row">
+      {% if shipping > 0 %}
+      <div class="summary-row" id="shippingRow">
         <span>Shipping</span>
         <span id="shipping">${{ shipping|default:"9.99" }}</span>
       </div>
+      {% endif %}
       <div class="summary-row">
         <span>Tax</span>
         <span id="tax">${{ tax|default:"8.00" }}</span>
       </div>
-      <div class="summary-row" id="discountRow" style="display: none; color: #4CAF50;">
-        <span>Discount</span>
-        <span id="discount">-$0.00</span>
+      {% if discount %}
+      <div class="summary-row" id="discountRow" style="color: #4CAF50;">
+        <span>Discount{% if promo_code %} ({{ promo_code }}){% endif %}</span>
+        <span id="discount">-${{ discount }}</span>
       </div>
+      {% endif %}
       <div class="summary-row total">
         <span>Total</span>
         <span id="total">${{ total|default:"107.96" }}</span>
@@ -832,11 +1081,13 @@
       {% for product in recommended_products %}
       <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: all 0.3s;">
         <a href="{% url 'storefront:product_detail' product.id %}" style="text-decoration: none; color: inherit;">
-          <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); display: flex; align-items: center; justify-content: center; font-size: 60px;">
+          <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%); display: flex; align-items: center; justify-content: center;">
             {% if product.image %}
               <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
             {% else %}
-              📦
+              <svg viewBox="0 0 24 24" fill="none" style="width: 60px; height: 60px; opacity: 0.15;">
+                <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="#667eea"/>
+              </svg>
             {% endif %}
           </div>
           <div style="padding: 20px;">
@@ -861,8 +1112,339 @@
   {% endif %}
 </div>
 
+<!-- Stripe.js Library -->
+<script src="https://js.stripe.com/v3/"></script>
+
 <script>
   let currentStep = 1;
+
+  // Initialize Stripe
+  const stripe = Stripe('pk_test_51QRxmZP3lN8WLMKZQF3xFxUj8QgXxV9zMxGxKxPxAxBxCxDxExFxGxHxIxJxKxLxMxN'); // Replace with your actual publishable key
+  const elements = stripe.elements();
+  
+  // Create card element
+  const cardElement = elements.create('card', {
+    style: {
+      base: {
+        fontSize: '16px',
+        color: '#32325d',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        '::placeholder': {
+          color: '#aab7c4'
+        }
+      },
+      invalid: {
+        color: '#dc2626',
+        iconColor: '#dc2626'
+      }
+    }
+  });
+  
+  // Mount card element when page loads
+  document.addEventListener('DOMContentLoaded', function() {
+    cardElement.mount('#card-element');
+    
+    // Handle real-time validation errors from card element
+    cardElement.on('change', function(event) {
+      const displayError = document.getElementById('card-errors');
+      if (event.error) {
+        displayError.textContent = event.error.message;
+      } else {
+        displayError.textContent = '';
+      }
+    });
+  });
+
+  // Payment tab switching
+  document.querySelectorAll('.payment-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      // Remove active class from all tabs
+      document.querySelectorAll('.payment-tab').forEach(t => t.classList.remove('active'));
+      // Add active class to clicked tab
+      this.classList.add('active');
+      
+      // Hide all payment contents
+      document.querySelectorAll('.payment-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      // Show selected payment content
+      const tabType = this.getAttribute('data-tab');
+      let contentId;
+      let paymentMethodValue;
+      
+      if (tabType === 'card') {
+        contentId = 'cardPayment';
+        paymentMethodValue = 'card';
+      } else if (tabType === 'paynow') {
+        contentId = 'paynowPayment';
+        paymentMethodValue = 'paynow';
+      } else if (tabType === 'applepay') {
+        contentId = 'applepayPayment';
+        paymentMethodValue = 'applepay';
+      } else if (tabType === 'paypal') {
+        contentId = 'paypalPayment';
+        paymentMethodValue = 'paypal';
+      }
+      
+      document.getElementById(contentId).classList.add('active');
+      
+      // Update all hidden payment_method inputs
+      document.querySelectorAll('input[name="payment_method"]').forEach(input => {
+        input.value = paymentMethodValue;
+      });
+      
+      // Clear payment method error border if exists
+      const paymentSection = document.querySelector('.payment-methods');
+      if (paymentSection) {
+        paymentSection.style.border = 'none';
+      }
+    });
+  });
+
+  // Real-time validation functions
+  function validateName(input, errorId, fieldName) {
+    const value = input.value.trim();
+    const errorElement = document.getElementById(errorId);
+    
+    if (value.length === 0) {
+      input.classList.add('error');
+      errorElement.textContent = `${fieldName} is required`;
+      return false;
+    } else if (value.length < 3) {
+      input.classList.add('error');
+      errorElement.textContent = `${fieldName} must be at least 3 characters`;
+      return false;
+    } else if (!/^[A-Za-z\s]+$/.test(value)) {
+      input.classList.add('error');
+      errorElement.textContent = `${fieldName} must contain only letters`;
+      return false;
+    } else {
+      input.classList.remove('error');
+      errorElement.textContent = '';
+      return true;
+    }
+  }
+
+  function validateEmail(input) {
+    const value = input.value.trim();
+    const errorElement = document.getElementById('email_error');
+    const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
+    
+    if (value.length === 0) {
+      input.classList.add('error');
+      errorElement.textContent = 'Email is required';
+      return false;
+    } else if (!emailPattern.test(value)) {
+      input.classList.add('error');
+      errorElement.textContent = 'Please enter a valid email address';
+      return false;
+    } else {
+      input.classList.remove('error');
+      errorElement.textContent = '';
+      return true;
+    }
+  }
+
+  function validatePhone(input) {
+    const value = input.value.trim();
+    const errorElement = document.getElementById('phone_error');
+    const phonePattern = /^\d{4,14}$/;
+    
+    if (value.length === 0) {
+      input.classList.add('error');
+      errorElement.textContent = 'Phone number is required';
+      return false;
+    } else if (!phonePattern.test(value)) {
+      input.classList.add('error');
+      errorElement.textContent = 'Please enter a valid phone number (4-14 digits)';
+      return false;
+    } else {
+      input.classList.remove('error');
+      errorElement.textContent = '';
+      return true;
+    }
+  }
+
+  function validatePostalCode(input) {
+    const value = input.value.trim();
+    const errorElement = document.getElementById('zip_error');
+    const postalPattern = /^[0-9]{5,6}$/;
+    
+    if (value.length === 0) {
+      input.classList.add('error');
+      errorElement.textContent = 'Postal code is required';
+      return false;
+    } else if (!postalPattern.test(value)) {
+      input.classList.add('error');
+      errorElement.textContent = 'Please enter a valid postal code (5-6 digits)';
+      return false;
+    } else {
+      input.classList.remove('error');
+      errorElement.textContent = '';
+      return true;
+    }
+  }
+
+  // Add event listeners for real-time validation
+  document.addEventListener('DOMContentLoaded', function() {
+    const firstNameInput = document.getElementById('first_name');
+    const lastNameInput = document.getElementById('last_name');
+    const emailInput = document.getElementById('email');
+    const phoneInput = document.getElementById('phone');
+    const zipInput = document.getElementById('zip');
+
+    if (firstNameInput) {
+      firstNameInput.addEventListener('blur', () => validateName(firstNameInput, 'first_name_error', 'First name'));
+      firstNameInput.addEventListener('input', () => validateName(firstNameInput, 'first_name_error', 'First name'));
+    }
+
+    if (lastNameInput) {
+      lastNameInput.addEventListener('blur', () => validateName(lastNameInput, 'last_name_error', 'Last name'));
+      lastNameInput.addEventListener('input', () => validateName(lastNameInput, 'last_name_error', 'Last name'));
+    }
+
+    if (emailInput) {
+      emailInput.addEventListener('blur', () => validateEmail(emailInput));
+      emailInput.addEventListener('input', () => validateEmail(emailInput));
+    }
+
+    if (phoneInput) {
+      phoneInput.addEventListener('blur', () => validatePhone(phoneInput));
+      phoneInput.addEventListener('input', () => validatePhone(phoneInput));
+    }
+
+    if (zipInput) {
+      zipInput.addEventListener('blur', () => validatePostalCode(zipInput));
+      zipInput.addEventListener('input', () => validatePostalCode(zipInput));
+    }
+
+    // Add form submission validation
+    const checkoutForm = document.getElementById('checkoutForm');
+    if (checkoutForm) {
+      checkoutForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validate all required fields
+        if (!validateAllFields()) {
+          alert('Please fill in all required fields correctly before placing your order.');
+          return false;
+        }
+        
+        // If validation passes, submit the form
+        this.submit();
+      });
+    }
+  });
+
+  function validateAllFields() {
+    const form = document.getElementById('checkoutForm');
+    let isValid = true;
+    let firstInvalidField = null;
+
+    // Get all required inputs and selects
+    const requiredFields = form.querySelectorAll('input[required], select[required]');
+    
+    requiredFields.forEach(field => {
+      // Skip radio buttons if any in the group is checked
+      if (field.type === 'radio') {
+        const radioGroup = form.querySelectorAll(`input[name="${field.name}"]`);
+        const isChecked = Array.from(radioGroup).some(radio => radio.checked);
+        if (!isChecked && field.name === 'payment_method') {
+          isValid = false;
+          if (!firstInvalidField) firstInvalidField = field;
+          // Highlight payment section
+          document.querySelector('.payment-methods').style.border = '2px solid #f44336';
+        } else if (isChecked && field.name === 'payment_method') {
+          document.querySelector('.payment-methods').style.border = 'none';
+        }
+        return;
+      }
+
+      // Skip checkbox for terms
+      if (field.type === 'checkbox') {
+        if (!field.checked) {
+          isValid = false;
+          if (!firstInvalidField) firstInvalidField = field;
+          field.parentElement.style.color = '#f44336';
+        } else {
+          field.parentElement.style.color = '';
+        }
+        return;
+      }
+
+      // Check if field is empty
+      if (!field.value || field.value.trim() === '') {
+        isValid = false;
+        field.classList.add('error');
+        if (!firstInvalidField) firstInvalidField = field;
+        
+        // Add error message if there's an error span
+        const fieldName = field.name.replace('_', ' ');
+        const errorSpan = document.getElementById(field.id + '_error');
+        if (errorSpan) {
+          errorSpan.textContent = `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} is required`;
+        }
+      } else {
+        field.classList.remove('error');
+      }
+    });
+
+    // Specific validation for fields with custom validators
+    const firstNameInput = document.getElementById('first_name');
+    const lastNameInput = document.getElementById('last_name');
+    const emailInput = document.getElementById('email');
+    const phoneInput = document.getElementById('phone');
+    const zipInput = document.getElementById('zip');
+
+    if (firstNameInput && firstNameInput.value) {
+      const isFirstNameValid = validateName(firstNameInput, 'first_name_error', 'First name');
+      if (!isFirstNameValid) {
+        isValid = false;
+        if (!firstInvalidField) firstInvalidField = firstNameInput;
+      }
+    }
+
+    if (lastNameInput && lastNameInput.value) {
+      const isLastNameValid = validateName(lastNameInput, 'last_name_error', 'Last name');
+      if (!isLastNameValid) {
+        isValid = false;
+        if (!firstInvalidField) firstInvalidField = lastNameInput;
+      }
+    }
+
+    if (emailInput && emailInput.value) {
+      const isEmailValid = validateEmail(emailInput);
+      if (!isEmailValid) {
+        isValid = false;
+        if (!firstInvalidField) firstInvalidField = emailInput;
+      }
+    }
+
+    if (phoneInput && phoneInput.value) {
+      const isPhoneValid = validatePhone(phoneInput);
+      if (!isPhoneValid) {
+        isValid = false;
+        if (!firstInvalidField) firstInvalidField = phoneInput;
+      }
+    }
+
+    if (zipInput && zipInput.value) {
+      const isPostalValid = validatePostalCode(zipInput);
+      if (!isPostalValid) {
+        isValid = false;
+        if (!firstInvalidField) firstInvalidField = zipInput;
+      }
+    }
+
+    // Scroll to first invalid field
+    if (firstInvalidField) {
+      firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstInvalidField.focus();
+    }
+
+    return isValid;
+  }
 
   function nextStep() {
     if (validateStep(currentStep)) {
@@ -897,11 +1479,118 @@
   }
 
   function validateStep(step) {
+    if (step === 1) {
+      // Validate shipping information
+      const firstNameInput = document.getElementById('first_name');
+      const lastNameInput = document.getElementById('last_name');
+      const emailInput = document.getElementById('email');
+      const phoneInput = document.getElementById('phone');
+      const addressInput = document.getElementById('address');
+      const zipInput = document.getElementById('zip');
+
+      const isFirstNameValid = validateName(firstNameInput, 'first_name_error', 'First name');
+      const isLastNameValid = validateName(lastNameInput, 'last_name_error', 'Last name');
+      const isEmailValid = validateEmail(emailInput);
+      const isPhoneValid = validatePhone(phoneInput);
+      const isPostalValid = validatePostalCode(zipInput);
+
+      // Check if address is filled
+      if (!addressInput.value.trim()) {
+        addressInput.classList.add('error');
+        document.getElementById('address_error').textContent = 'Address is required';
+        return false;
+      } else {
+        addressInput.classList.remove('error');
+        document.getElementById('address_error').textContent = '';
+      }
+
+      // Check all other required fields in step 1
+      const stepContent = document.querySelector(`.step-content[data-step="1"]`);
+      const requiredFields = stepContent.querySelectorAll('input[required], select[required]');
+      let allFilled = true;
+      
+      requiredFields.forEach(field => {
+        if (!field.value || field.value.trim() === '') {
+          field.classList.add('error');
+          allFilled = false;
+        }
+      });
+
+      if (!isFirstNameValid || !isLastNameValid || !isEmailValid || !isPhoneValid || !isPostalValid || !allFilled) {
+        alert('Please fill in all required fields and fix validation errors before proceeding');
+        return false;
+      }
+
+      return true;
+    }
+
+    // Validation for step 2 (Payment)
+    if (step === 2) {
+      // Check if any payment tab is active
+      const activeTab = document.querySelector('.payment-tab.active');
+      
+      if (!activeTab) {
+        alert('Please select a payment method before proceeding');
+        // Highlight payment section
+        const paymentTabs = document.querySelector('.payment-tabs');
+        if (paymentTabs) {
+          paymentTabs.style.border = '2px solid #f44336';
+          paymentTabs.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return false;
+      } else {
+        // Remove error styling
+        const paymentTabs = document.querySelector('.payment-tabs');
+        if (paymentTabs) {
+          paymentTabs.style.border = 'none';
+        }
+      }
+
+      // Check if card details are filled if card payment is selected
+      const tabType = activeTab.getAttribute('data-tab');
+      if (tabType === 'card') {
+        // For Stripe, we just need to check if the card element has content
+        // The validation happens through Stripe's own validation
+        const cardElement = document.getElementById('card-element');
+        if (cardElement && !cardElement.classList.contains('StripeElement--complete')) {
+          alert('Please fill in your card details');
+          cardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    // Default validation for other steps
     const stepContent = document.querySelector(`.step-content[data-step="${step}"]`);
     const inputs = stepContent.querySelectorAll('input[required], select[required]');
     
     for (let input of inputs) {
-      if (!input.value) {
+      // Skip radio buttons - check if any in the group is selected
+      if (input.type === 'radio') {
+        const radioName = input.name;
+        const radioGroup = stepContent.querySelectorAll(`input[name="${radioName}"]`);
+        const isChecked = Array.from(radioGroup).some(radio => radio.checked);
+        if (!isChecked) {
+          alert(`Please select a ${radioName.replace('_', ' ')}`);
+          return false;
+        }
+        continue;
+      }
+
+      // Skip checkbox for terms
+      if (input.type === 'checkbox') {
+        if (!input.checked) {
+          alert('Please agree to the Terms & Conditions');
+          input.focus();
+          return false;
+        }
+        continue;
+      }
+
+      if (!input.value || input.value.trim() === '') {
+        input.classList.add('error');
         input.focus();
         alert('Please fill in all required fields');
         return false;
@@ -912,30 +1601,52 @@
 
   function updateReview() {
     const form = document.getElementById('checkoutForm');
+    const countryCode = form.country_code.value;
+    const phoneNumber = form.phone.value;
+    const fullPhone = `${countryCode} ${phoneNumber}`;
+    
     const address = `${form.first_name.value} ${form.last_name.value}<br>
                      ${form.address.value}<br>
                      ${form.city.value}, ${form.state.value} ${form.zip.value}<br>
                      ${form.country.options[form.country.selectedIndex].text}<br>
-                     ${form.phone.value}`;
+                     ${fullPhone}`;
     
     document.getElementById('reviewAddress').innerHTML = address;
     
-    const paymentMethod = form.payment_method.value;
+    // Get active payment tab
+    const activeTab = document.querySelector('.payment-tab.active');
     let paymentText = '';
+    let paymentIcon = '';
     
-    if (paymentMethod === 'card') {
-      const cardNumber = form.card_number.value;
-      const lastFour = cardNumber.slice(-4);
-      paymentText = '💳 Credit/Debit Card ending in ' + lastFour;
-    } else if (paymentMethod === 'paynow') {
-      paymentText = '📱 PayNow (Instant Bank Transfer)';
-    } else if (paymentMethod === 'paypal') {
-      paymentText = '🅿️ PayPal';
-    } else if (paymentMethod === 'applepay') {
-      paymentText = '🍎 Apple Pay';
+    if (activeTab) {
+      const tabType = activeTab.getAttribute('data-tab');
+      
+      if (tabType === 'card') {
+        paymentIcon = '<svg width="40" height="32" viewBox="0 0 20 16" fill="currentColor" style="color: #667eea;"><rect x="0" y="0" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="0" y="4" width="20" height="4" fill="currentColor" opacity="0.3"/><rect x="2" y="10" width="6" height="2" rx="1" fill="currentColor" opacity="0.5"/></svg>';
+        paymentText = 'Credit/Debit Card';
+      } else if (tabType === 'paynow') {
+        paymentIcon = '<img src="{% static "images/paynow.png" %}" alt="PayNow" style="width: 50px; height: auto;">';
+        paymentText = 'PayNow (Instant Bank Transfer)';
+      } else if (tabType === 'paypal') {
+        paymentIcon = '<img src="{% static "images/paypal.png" %}" alt="PayPal" style="width: 50px; height: auto;">';
+        paymentText = 'PayPal';
+      } else if (tabType === 'applepay') {
+        paymentIcon = '<img src="{% static "images/applepay.png" %}" alt="Apple Pay" style="width: 50px; height: auto;">';
+        paymentText = 'Apple Pay';
+      }
+      
+      document.getElementById('reviewPayment').innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="line-height: 1;">${paymentIcon}</div>
+          <div>
+            <div style="font-weight: 600; color: #1f2937; font-size: 16px;">${paymentText}</div>
+            <div style="font-size: 13px; color: #6b7280; margin-top: 2px;">Payment will be processed securely</div>
+          </div>
+        </div>
+      `;
+    } else {
+      document.getElementById('reviewPayment').innerHTML = '<span style="color: #f44336; font-weight: 500;">⚠️ No payment method selected</span>';
     }
-    
-    document.getElementById('reviewPayment').textContent = paymentText;
   }
 
   // Payment method selection
