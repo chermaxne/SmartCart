@@ -47,6 +47,13 @@ class UserRegisterForm(UserCreationForm):
     class Meta:
         model = User
         fields = ("username", "email", "password1", "password2")
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        # Check if email is already registered
+        if Customer.objects.filter(email=email).exists():
+            raise forms.ValidationError("This email is already registered. Please use a different email.")
+        return email
 
 class UserProfileForm(forms.ModelForm):
     """Form for editing complete user profile information"""
@@ -89,13 +96,6 @@ class UserProfileForm(forms.ModelForm):
         if Customer.objects.filter(username=username).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError("This username is already taken.")
         return username
-    
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        # Check if email is taken by another user
-        if Customer.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
-            raise forms.ValidationError("This email is already in use.")
-        return email
 
 class CustomerForm(forms.ModelForm):
     # Override fields to use choices - ALL REQUIRED for ML predictions
@@ -124,9 +124,12 @@ class CustomerForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Make all fields REQUIRED for accurate ML predictions
+        # Make all fields REQUIRED for accurate ML predictions, except has_children
         for field in self.fields:
-            self.fields[field].required = True
+            if field != 'has_children':
+                self.fields[field].required = True
+            else:
+                self.fields[field].required = False
 
 class CustomPasswordChangeForm(PasswordChangeForm):
     """Custom password change form with styled fields"""
