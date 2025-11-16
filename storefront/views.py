@@ -268,11 +268,11 @@ def home_view(request):
     if request.GET.get('from_nba'):
         request.session['next_best_action_shown'] = True
     
-    # Get all categories for the filter - optimize with only needed fields
-    all_categories = Category.objects.only('id', 'name').order_by('name')
+    # Get all categories for the filter
+    all_categories = Category.objects.all().order_by('name')
     
-    # Start with active products - use select_related to avoid N+1 queries on category
-    products = Product.objects.filter(is_active=True).select_related('category')
+    # Start with active products
+    products = Product.objects.filter(is_active=True)
     
     # Category filter
     category_filter = request.GET.get('category', '').strip()
@@ -316,7 +316,7 @@ def home_view(request):
                 recommended_products = list(Product.objects.filter(
                     category=request.user.preferred_category,
                     is_active=True
-                ).select_related('category').order_by('-rating')[:6])
+                ).order_by('-rating')[:6])
                 logger.info(f"User {request.user.username} has preferred category: {predicted_category}, found {len(recommended_products)} products")
             else:
                 # Fallback to ML prediction if no preferred category set
@@ -331,7 +331,7 @@ def home_view(request):
                         recommended_products = list(Product.objects.filter(
                             category=category,
                             is_active=True
-                        ).select_related('category').order_by('-rating')[:6])
+                        ).order_by('-rating')[:6])
                         
                         # Save the predicted category to user profile
                         request.user.preferred_category = category
@@ -342,14 +342,14 @@ def home_view(request):
                         logger.warning(f"Predicted category '{predicted_category_name}' not found in database")
                         recommended_products = list(Product.objects.filter(
                             is_active=True
-                        ).select_related('category').order_by('-rating')[:6])
+                        ).order_by('-rating')[:6])
                     except Category.MultipleObjectsReturned:
                         category = Category.objects.filter(name__icontains=predicted_category_name).first()
                         predicted_category = category.name
                         recommended_products = list(Product.objects.filter(
                             category=category,
                             is_active=True
-                        ).select_related('category').order_by('-rating')[:6])
+                        ).order_by('-rating')[:6])
                         
                         # Save the predicted category to user profile
                         request.user.preferred_category = category
@@ -360,13 +360,13 @@ def home_view(request):
             # Fallback: if no recommendations, use top-rated products
             if not recommended_products or len(recommended_products) == 0:
                 logger.warning(f"No recommended products found, using top-rated fallback")
-                recommended_products = list(Product.objects.filter(is_active=True).select_related('category').order_by('-rating')[:6])
+                recommended_products = list(Product.objects.filter(is_active=True).order_by('-rating')[:6])
                 
         except Exception as e:
             logger.error(f"Recommendation error in home_view: {e}", exc_info=True)
-            recommended_products = list(Product.objects.filter(is_active=True).select_related('category').order_by('-rating')[:6])
+            recommended_products = list(Product.objects.filter(is_active=True).order_by('-rating')[:6])
     else:
-        recommended_products = list(Product.objects.filter(is_active=True).select_related('category').order_by('-rating')[:6])
+        recommended_products = list(Product.objects.filter(is_active=True).order_by('-rating')[:6])
     
     # Get next best category to explore
     next_best_category = _get_next_best_category(request)
@@ -389,7 +389,7 @@ def product_detail(request, id):
     """
     Product detail page with ML-powered "Frequently Bought Together" recommendations
     """
-    product = get_object_or_404(Product.objects.select_related('category'), id=id)
+    product = get_object_or_404(Product, id=id)
     
     # Get "Frequently Bought Together" recommendations
     frequently_bought_together = []
@@ -406,7 +406,7 @@ def product_detail(request, id):
         frequently_bought_together = list(Product.objects.filter(
             category=product.category,
             is_active=True
-        ).select_related('category').exclude(id=product.id).order_by('-rating')[:4])
+        ).exclude(id=product.id).order_by('-rating')[:4])
     
     return render(request, 'storefront/product_detail.html', {
         'product': product,
@@ -506,15 +506,11 @@ def cart_view(request):
     subtotal = Decimal('0.00')
     cart_skus = []
 
-    # Optimize: Get all products in cart in a single query with select_related
-    cart_product_ids = [int(pid) for pid in cart.keys()]
-    cart_products = {p.id: p for p in Product.objects.filter(id__in=cart_product_ids).select_related('category')}
-
     for pid, qty in cart.items():
-        p = cart_products.get(int(pid))
-        if not p:
+        try:
+            p = Product.objects.get(id=int(pid))
+        except Product.DoesNotExist:
             continue
-            
         total_price = (p.price * int(qty)).quantize(Decimal('0.01'))
         subtotal += total_price
         
@@ -615,19 +611,15 @@ def checkout(request):
     subtotal = Decimal('0.00')
     cart_skus = []
     
-    # Optimize: Get all products in cart in a single query with select_related
-    cart_product_ids = [int(pid) for pid in cart.keys()]
-    cart_products = {p.id: p for p in Product.objects.filter(id__in=cart_product_ids).select_related('category')}
-    
     for pid, qty in cart.items():
-        p = cart_products.get(int(pid))
-        if not p:
+        try:
+            p = Product.objects.get(id=int(pid))
+            total_price = (p.price * int(qty)).quantize(Decimal('0.01'))
+            subtotal += total_price
+            order_items.append({'product': p, 'quantity': qty, 'total_price': total_price})
+            cart_skus.append(p.sku)
+        except Product.DoesNotExist:
             continue
-            
-        total_price = (p.price * int(qty)).quantize(Decimal('0.01'))
-        subtotal += total_price
-        order_items.append({'product': p, 'quantity': qty, 'total_price': total_price})
-        cart_skus.append(p.sku)
 
     if not order_items:
         messages.warning(request, 'Your cart is empty')
@@ -661,7 +653,7 @@ def checkout(request):
                 checkout_recommendations = list(Product.objects.filter(
                     sku__in=recommended_skus,
                     is_active=True
-                ).select_related('category')[:4])
+                )[:4])
                 print(f"DEBUG CHECKOUT: Found {len(checkout_recommendations)} products")
             else:
                 print("DEBUG CHECKOUT: No recommended SKUs returned")
@@ -952,17 +944,14 @@ def profile_orders(request):
     """Order history"""
     try:
         customer = Customer.objects.get(username=request.user.username)
-        # Optimize: Prefetch related order items with their products
-        orders = Order.objects.filter(customer=customer).prefetch_related(
-            'items__product__category'
-        ).order_by('-created_at')
+        orders = Order.objects.filter(customer=customer).order_by('-created_at')
     except Customer.DoesNotExist:
         orders = []
     
     # Calculate totals for each order
     orders_with_totals = []
     for order in orders:
-        items = order.items.all()  # Already prefetched, no extra query
+        items = order.items.all()
         # Add item_total to each item for display
         items_with_totals = []
         for item in items:
