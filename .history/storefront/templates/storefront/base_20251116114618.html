@@ -214,15 +214,15 @@
         .footer-content {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 40px 40px 20px;
+            padding: 40px 40px;
             display: flex;
             justify-content: space-between;
-            gap: 60px;
+            align-items: center;
+            gap: 40px;
         }
 
         .footer-section h3 {
             font-size: 18px;
-            padding-right: 500px;
             margin-bottom: 15px;
             color: #333;
         }
@@ -236,7 +236,6 @@
 
         .footer-section:first-child {
             flex: 1;
-            max-width: 500px;
         }
 
         .footer-links {
@@ -258,6 +257,12 @@
 
         .footer-links a:hover {
             color: #667eea;
+        }
+
+        .footer-copyright {
+            color: #666;
+            font-size: 14px;
+            white-space: nowrap;
         }
 
         .social-links {
@@ -286,11 +291,7 @@
         }
 
         .footer-bottom {
-            text-align: center;
-            padding: 20px 40px;
-            border-top: 1px solid #e0e0e0;
-            color: #666;
-            font-size: 14px;
+            display: none;
         }
 
         /* Notification Toast */
@@ -665,7 +666,6 @@
                     <li><a href="{% url 'storefront:profile' %}">Profile</a></li>
                 </ul>
             </div>
-        </div>
         
         <div class="footer-bottom">
             &copy; 2025 IS2108 AuroraMart. All rights reserved. Built with love for amazing shoppers.

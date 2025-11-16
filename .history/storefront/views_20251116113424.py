@@ -517,11 +517,12 @@ def cart_view(request):
         # Get "Complete the Set" recommendations for this specific product
         item_recommendations = []
         try:
-            # The function now returns Product objects directly
-            item_recommendations = get_frequently_bought_together(p.sku, top_n=3)
-            if item_recommendations:
-                # Filter out the current product and convert to list
-                item_recommendations = [prod for prod in item_recommendations if prod.id != p.id][:3]
+            recommended_skus = get_frequently_bought_together(p.sku, top_n=3)
+            if recommended_skus:
+                item_recommendations = list(Product.objects.filter(
+                    sku__in=recommended_skus,
+                    is_active=True
+                ).exclude(id=p.id)[:3])
         except Exception as e:
             logger.error(f"Complete the set for product {p.sku} error: {e}", exc_info=True)
         
@@ -551,11 +552,14 @@ def cart_view(request):
     complete_the_set_products = []
     if cart_skus:
         try:
-            # The function now returns Product objects directly
-            complete_the_set_products = get_complete_the_set(cart_skus, top_n=6)
+            # Use the new get_complete_the_set function
+            recommended_skus = get_complete_the_set(cart_skus, top_n=6)
             
-            if complete_the_set_products:
-                complete_the_set_products = list(complete_the_set_products)[:6]
+            if recommended_skus:
+                complete_the_set_products = list(Product.objects.filter(
+                    sku__in=recommended_skus,
+                    is_active=True
+                )[:6])
         except Exception as e:
             logger.error(f"Complete the set recommendations error: {e}", exc_info=True)
 

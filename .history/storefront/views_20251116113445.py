@@ -551,11 +551,14 @@ def cart_view(request):
     complete_the_set_products = []
     if cart_skus:
         try:
-            # The function now returns Product objects directly
-            complete_the_set_products = get_complete_the_set(cart_skus, top_n=6)
+            # Use the new get_complete_the_set function
+            recommended_skus = get_complete_the_set(cart_skus, top_n=6)
             
-            if complete_the_set_products:
-                complete_the_set_products = list(complete_the_set_products)[:6]
+            if recommended_skus:
+                complete_the_set_products = list(Product.objects.filter(
+                    sku__in=recommended_skus,
+                    is_active=True
+                )[:6])
         except Exception as e:
             logger.error(f"Complete the set recommendations error: {e}", exc_info=True)
 

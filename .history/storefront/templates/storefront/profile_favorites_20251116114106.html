@@ -112,11 +112,7 @@
           {% if favorite.product.image %}
           <img src="{{ favorite.product.image.url }}" alt="{{ favorite.product.name }}" class="favorite-image" style="height: 200px; object-fit: cover;">
           {% else %}
-          <div class="favorite-image" style="background: linear-gradient(135deg, #f5f7fa 0%, #e3e8f0 100%); display: flex; align-items: center; justify-content: center;">
-            <svg viewBox="0 0 24 24" fill="none" style="width: 64px; height: 64px;">
-              <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" fill="#667eea"/>
-            </svg>
-          </div>
+          <div class="favorite-image">📦</div>
           {% endif %}
           
           <div class="favorite-info">

@@ -215,14 +215,13 @@
             max-width: 1400px;
             margin: 0 auto;
             padding: 40px 40px 20px;
-            display: flex;
-            justify-content: space-between;
-            gap: 60px;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
         }
 
         .footer-section h3 {
             font-size: 18px;
-            padding-right: 500px;
             margin-bottom: 15px;
             color: #333;
         }
@@ -231,18 +230,10 @@
             color: #666;
             font-size: 14px;
             line-height: 1.8;
-            margin: 0;
-        }
-
-        .footer-section:first-child {
-            flex: 1;
-            max-width: 500px;
         }
 
         .footer-links {
             list-style: none;
-            margin: 0;
-            padding: 0;
         }
 
         .footer-links li {
@@ -661,14 +652,35 @@
                 <h3>Quick Links</h3>
                 <ul class="footer-links">
                     <li><a href="{% url 'storefront:home' %}">Home</a></li>
-                    <li><a href="{% url 'storefront:shop' %}">Products</a></li>
-                    <li><a href="{% url 'storefront:profile' %}">Profile</a></li>
+                    <li><a href="#">Products</a></li>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Customer Service</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Track Order</a></li>
+                    <li><a href="#">Returns</a></li>
+                    <li><a href="#">Shipping Info</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Cookie Policy</a></li>
+                    <li><a href="#">Disclaimer</a></li>
                 </ul>
             </div>
         </div>
         
         <div class="footer-bottom">
-            &copy; 2025 IS2108 AuroraMart. All rights reserved. Built with love for amazing shoppers.
+            &copy; 2025 SmartCart. All rights reserved. Built with love for amazing shoppers.
         </div>
     </footer>
 

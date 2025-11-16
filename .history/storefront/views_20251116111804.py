@@ -118,63 +118,34 @@ def _get_next_best_category(request):
     """
     from django.db.models import Count
     
-    # Define complementary category mappings (what goes well together)
-    COMPLEMENTARY_CATEGORIES = {
-        'Fashion - Women': ['Beauty & Personal Care', 'Fashion - Men', 'Health'],
-        'Fashion - Men': ['Fashion - Women', 'Sports & Outdoors', 'Automotive'],
-        'Beauty & Personal Care': ['Fashion - Women', 'Health', 'Fashion - Men'],
-        'Electronics': ['Home & Kitchen', 'Sports & Outdoors', 'Automotive'],
-        'Sports & Outdoors': ['Health', 'Fashion - Men', 'Electronics'],
-        'Books': ['Electronics', 'Home & Kitchen', 'Toys & Games'],
-        'Home & Kitchen': ['Electronics', 'Groceries & Gourmet', 'Books'],
-        'Groceries & Gourmet': ['Home & Kitchen', 'Health', 'Pet Supplies'],
-        'Health': ['Beauty & Personal Care', 'Sports & Outdoors', 'Groceries & Gourmet'],
-        'Pet Supplies': ['Groceries & Gourmet', 'Home & Kitchen', 'Health'],
-        'Automotive': ['Electronics', 'Sports & Outdoors', 'Fashion - Men'],
-        'Toys & Games': ['Books', 'Electronics', 'Sports & Outdoors'],
-    }
-    
     # Check if already shown in this session
     if request.session.get('next_best_action_shown'):
         return None
     
     # For authenticated users with preferred category
-    if request.user.is_authenticated and request.user.preferred_category:
+    if request.user.is_authenticated:
         try:
-            preferred_category = request.user.preferred_category
-            preferred_name = preferred_category.name
+            customer = Customer.objects.get(username=request.user.username)
+            preferred_category_name = customer.preferred_category
             
-            # Get complementary categories for this preferred category
-            complementary_names = COMPLEMENTARY_CATEGORIES.get(preferred_name, [])
-            
-            if complementary_names:
-                # Try to find the first available complementary category
-                for comp_name in complementary_names:
-                    try:
-                        comp_category = Category.objects.annotate(
-                            product_count=Count('product', filter=Q(product__is_active=True))
-                        ).get(name__iexact=comp_name, product_count__gt=0)
-                        return comp_category
-                    except Category.DoesNotExist:
-                        continue
-            
-            # Fallback: if no complementary categories found, get a different category
-            other_categories = Category.objects.exclude(
-                id=preferred_category.id
-            ).annotate(
-                product_count=Count('product', filter=Q(product__is_active=True))
-            ).filter(product_count__gt=0)
-            
-            if other_categories.exists():
-                return other_categories.order_by('-product_count').first()
+            if preferred_category_name:
+                # Get all categories except the preferred one
+                other_categories = Category.objects.exclude(
+                    name__iexact=preferred_category_name
+                ).annotate(
+                    product_count=Count('product')
+                ).filter(product_count__gt=0)
                 
-        except Exception as e:
-            logger.warning(f"Error getting next best category: {e}")
+                # Return the most popular complementary category
+                if other_categories.exists():
+                    return other_categories.order_by('-product_count').first()
+        except Customer.DoesNotExist:
+            pass
     
     # For non-authenticated or users without preferred category
     # Suggest most popular category
     popular_category = Category.objects.annotate(
-        product_count=Count('product', filter=Q(product__is_active=True))
+        product_count=Count('product')
     ).filter(product_count__gt=0).order_by('-product_count').first()
     
     return popular_category
@@ -317,49 +288,31 @@ def home_view(request):
                     category=request.user.preferred_category,
                     is_active=True
                 ).order_by('-rating')[:6])
-                logger.info(f"User {request.user.username} has preferred category: {predicted_category}, found {len(recommended_products)} products")
             else:
                 # Fallback to ML prediction if no preferred category set
-                predicted_category_name = predict_customer_category(request.user)
-                logger.info(f"ML predicted category for {request.user.username}: {predicted_category_name}")
+                predicted_category = predict_customer_category(request.user)
                 
                 # Get products from predicted category (Recommended For You)
-                if predicted_category_name:
+                if predicted_category:
                     try:
-                        category = Category.objects.get(name__iexact=predicted_category_name)
-                        predicted_category = category.name
+                        category = Category.objects.get(name__icontains=predicted_category)
                         recommended_products = list(Product.objects.filter(
                             category=category,
                             is_active=True
                         ).order_by('-rating')[:6])
-                        
-                        # Save the predicted category to user profile
-                        request.user.preferred_category = category
-                        request.user.save()
-                        
-                        logger.info(f"Found {len(recommended_products)} products in predicted category: {predicted_category}")
                     except Category.DoesNotExist:
-                        logger.warning(f"Predicted category '{predicted_category_name}' not found in database")
                         recommended_products = list(Product.objects.filter(
                             is_active=True
                         ).order_by('-rating')[:6])
                     except Category.MultipleObjectsReturned:
-                        category = Category.objects.filter(name__icontains=predicted_category_name).first()
-                        predicted_category = category.name
+                        category = Category.objects.filter(name__icontains=predicted_category).first()
                         recommended_products = list(Product.objects.filter(
                             category=category,
                             is_active=True
                         ).order_by('-rating')[:6])
-                        
-                        # Save the predicted category to user profile
-                        request.user.preferred_category = category
-                        request.user.save()
-                        
-                        logger.info(f"Multiple categories matched, using first: {category.name}")
             
             # Fallback: if no recommendations, use top-rated products
             if not recommended_products or len(recommended_products) == 0:
-                logger.warning(f"No recommended products found, using top-rated fallback")
                 recommended_products = list(Product.objects.filter(is_active=True).order_by('-rating')[:6])
                 
         except Exception as e:
@@ -394,19 +347,21 @@ def product_detail(request, id):
     # Get "Frequently Bought Together" recommendations
     frequently_bought_together = []
     try:
-        # The function now returns Product objects directly
-        frequently_bought_together = get_frequently_bought_together(product.sku, top_n=4)
+        # Use the new get_frequently_bought_together function
+        recommended_skus = get_frequently_bought_together(product.sku, top_n=4)
         
-        # If it's a list/queryset, convert to list
-        if frequently_bought_together:
-            frequently_bought_together = list(frequently_bought_together)
+        if recommended_skus:
+            frequently_bought_together = Product.objects.filter(
+                sku__in=recommended_skus,
+                is_active=True
+            )[:4]
     except Exception as e:
         logger.error(f"Frequently bought together error in product_detail: {e}", exc_info=True)
         # Fallback: same category products
-        frequently_bought_together = list(Product.objects.filter(
+        frequently_bought_together = Product.objects.filter(
             category=product.category,
             is_active=True
-        ).exclude(id=product.id).order_by('-rating')[:4])
+        ).exclude(id=product.id).order_by('-rating')[:4]
     
     return render(request, 'storefront/product_detail.html', {
         'product': product,
@@ -517,11 +472,12 @@ def cart_view(request):
         # Get "Complete the Set" recommendations for this specific product
         item_recommendations = []
         try:
-            # The function now returns Product objects directly
-            item_recommendations = get_frequently_bought_together(p.sku, top_n=3)
-            if item_recommendations:
-                # Filter out the current product and convert to list
-                item_recommendations = [prod for prod in item_recommendations if prod.id != p.id][:3]
+            recommended_skus = get_frequently_bought_together(p.sku, top_n=3)
+            if recommended_skus:
+                item_recommendations = list(Product.objects.filter(
+                    sku__in=recommended_skus,
+                    is_active=True
+                ).exclude(id=p.id)[:3])
         except Exception as e:
             logger.error(f"Complete the set for product {p.sku} error: {e}", exc_info=True)
         
@@ -551,11 +507,14 @@ def cart_view(request):
     complete_the_set_products = []
     if cart_skus:
         try:
-            # The function now returns Product objects directly
-            complete_the_set_products = get_complete_the_set(cart_skus, top_n=6)
+            # Use the new get_complete_the_set function
+            recommended_skus = get_complete_the_set(cart_skus, top_n=6)
             
-            if complete_the_set_products:
-                complete_the_set_products = list(complete_the_set_products)[:6]
+            if recommended_skus:
+                complete_the_set_products = list(Product.objects.filter(
+                    sku__in=recommended_skus,
+                    is_active=True
+                )[:6])
         except Exception as e:
             logger.error(f"Complete the set recommendations error: {e}", exc_info=True)
 
@@ -757,7 +716,7 @@ def register(request):
                 user = user_form.save(commit=False)
                 user.set_password(user_form.cleaned_data['password1'])
 
-                # Copy customer form fields (including preferred_category if selected)
+                # Copy customer form fields
                 for field, value in customer_form.cleaned_data.items():
                     if hasattr(user, field):
                         try:
@@ -767,45 +726,26 @@ def register(request):
 
                 user.save()
 
-                # ML Integration: Only predict if user didn't manually select a preferred category
-                if not user.preferred_category:
+                # ML Integration: Predict preferred category using new predictions_code
+                try:
+                    predicted_category = predict_customer_category(user)
+
+                    # Save predicted category to customer profile
                     try:
-                        predicted_category = predict_customer_category(user)
+                        category = Category.objects.get(name__icontains=predicted_category)
+                        user.preferred_category = category
+                        user.save()
 
-                        # Save predicted category to customer profile
-                        if predicted_category:
-                            try:
-                                category = Category.objects.get(name__iexact=predicted_category)
-                                user.preferred_category = category
-                                user.save()
-
-                                messages.success(
-                                    request,
-                                    f"🎉 Welcome to AuroraMart! Based on your profile, you might love our {predicted_category} products."
-                                )
-                            except Category.DoesNotExist:
-                                logger.warning(f"Predicted category '{predicted_category}' not found")
-                                messages.success(request, "🎉 Account created successfully! Welcome to AuroraMart!")
-                            except Category.MultipleObjectsReturned:
-                                category = Category.objects.filter(name__icontains=predicted_category).first()
-                                user.preferred_category = category
-                                user.save()
-                                messages.success(
-                                    request,
-                                    f"🎉 Welcome to AuroraMart! Based on your profile, you might love our {category.name} products."
-                                )
-                        else:
-                            messages.success(request, "🎉 Account created successfully! Welcome to AuroraMart!")
-
-                    except Exception as e:
-                        logger.error(f"Category prediction error during registration: {e}", exc_info=True)
+                        messages.success(
+                            request,
+                            f"🎉 Welcome to AuroraMart! Based on your profile, you might love our {predicted_category} products."
+                        )
+                    except Category.DoesNotExist:
                         messages.success(request, "🎉 Account created successfully! Welcome to AuroraMart!")
-                else:
-                    # User manually selected a category
-                    messages.success(
-                        request,
-                        f"🎉 Welcome to AuroraMart! You'll see personalized recommendations from {user.preferred_category.name}."
-                    )
+
+                except Exception as e:
+                    logger.error(f"Category prediction error during registration: {e}", exc_info=True)
+                    messages.success(request, "🎉 Account created successfully! Welcome to AuroraMart!")
 
                 # Auto-login
                 auth_login(request, user)
@@ -833,11 +773,6 @@ def register(request):
     })
 
 def login(request):
-    # Redirect already logged-in users to home
-    if request.user.is_authenticated:
-        messages.info(request, "You are already logged in!")
-        return redirect('storefront:home')
-    
     if request.method == "POST":
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
