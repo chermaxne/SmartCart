@@ -125,7 +125,8 @@ def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)
     product_name = product.name
     
-    #Deactivating instead of deleting
+    # Instead of deleting, mark as inactive (soft delete)
+    # This preserves data for AI model and order history
     product.is_active = False
     product.save()
     

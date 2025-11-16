@@ -23,10 +23,12 @@ def product_list(request):
             Q(description__icontains=search_query)
         )
     
+    # Filter by category
     category_id = request.GET.get('category', '')
     if category_id:
         products = products.filter(category_id=category_id)
     
+    # Sort
     sort_by = request.GET.get('sort', '-created_at')
     products = products.order_by(sort_by)
     
@@ -73,6 +75,7 @@ def low_stock(request):
     if category_id:
         products = products.filter(category_id=category_id)
     
+    # Sort
     sort_by = request.GET.get('sort', 'stock')
     products = products.order_by(sort_by)
     
@@ -125,7 +128,8 @@ def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)
     product_name = product.name
     
-    #Deactivating instead of deleting
+    # Instead of deleting, mark as inactive (soft delete)
+    # This preserves data for AI model and order history
     product.is_active = False
     product.save()
     

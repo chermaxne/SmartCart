@@ -104,8 +104,10 @@ def customer_list(request):
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     
+    # Get customer's orders
     orders = Order.objects.filter(customer=customer).order_by('-created_at')
     
+    # Calculate statistics
     total_orders = orders.count()
     total_spent = orders.aggregate(total=Sum('total_amount'))['total'] or 0
     completed_orders = orders.filter(completed=True).count()

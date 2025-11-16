@@ -18,6 +18,6 @@ urlpatterns = [
     path('categories/<int:pk>/', category_views.category_detail, name='category_detail'),
     path('categories/<int:pk>/edit/', category_views.category_edit, name='category_edit'),
     path('categories/<int:pk>/delete/', category_views.category_delete, name='category_delete'),
-    path('customers/', customer_views.customer_list, name='customer_list'),
+        path('customers/', customer_views.customer_list, name='customer_list'),
     path('customers/<int:pk>/', customer_views.customer_detail, name='customer_detail'),
 ]

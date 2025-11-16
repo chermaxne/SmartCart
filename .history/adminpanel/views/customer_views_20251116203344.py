@@ -68,6 +68,7 @@ def customer_list(request):
     if household_size:
         customers = customers.filter(household_size=household_size)
     
+    # Sorting
     sort_by = request.GET.get('sort', '')
     if sort_by:
         customers = customers.order_by(sort_by)
@@ -78,8 +79,10 @@ def customer_list(request):
     paginator = Paginator(customers, 20)
     page_obj = paginator.get_page(request.GET.get('page'))
     
+    # Get all categories for filter dropdown
     all_categories = Category.objects.all().order_by('name')
     
+    # Get distinct values for filters (only from non-staff customers)
     distinct_genders = Customer.objects.filter(is_active=True, is_staff=False).values_list('gender', flat=True).distinct().order_by('gender')
     distinct_educations = Customer.objects.filter(is_active=True, is_staff=False).values_list('education', flat=True).distinct().order_by('education')
     distinct_employments = Customer.objects.filter(is_active=True, is_staff=False).values_list('employment_status', flat=True).distinct().order_by('employment_status')
@@ -104,8 +107,10 @@ def customer_list(request):
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     
+    # Get customer's orders
     orders = Order.objects.filter(customer=customer).order_by('-created_at')
     
+    # Calculate statistics
     total_orders = orders.count()
     total_spent = orders.aggregate(total=Sum('total_amount'))['total'] or 0
     completed_orders = orders.filter(completed=True).count()
