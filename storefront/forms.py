@@ -98,14 +98,14 @@ class UserProfileForm(forms.ModelForm):
         return email
 
 class CustomerForm(forms.ModelForm):
-    # Override fields to use choices
-    gender = forms.ChoiceField(choices=GENDER_CHOICES, required=False)
-    employment_status = forms.ChoiceField(choices=EMPLOYMENT_STATUS_CHOICES, required=False)
-    occupation = forms.ChoiceField(choices=OCCUPATION_CHOICES, required=False)
-    education = forms.ChoiceField(choices=EDUCATION_CHOICES, required=False)
+    # Override fields to use choices - ALL REQUIRED for ML predictions
+    gender = forms.ChoiceField(choices=GENDER_CHOICES, required=True)
+    employment_status = forms.ChoiceField(choices=EMPLOYMENT_STATUS_CHOICES, required=True)
+    occupation = forms.ChoiceField(choices=OCCUPATION_CHOICES, required=True)
+    education = forms.ChoiceField(choices=EDUCATION_CHOICES, required=True)
     preferred_category = forms.ModelChoiceField(
         queryset=Category.objects.all(),
-        required=False,
+        required=True,
         empty_label="-- Select Your Preferred Category --",
         help_text="Choose a category you're most interested in"
     )
@@ -124,9 +124,9 @@ class CustomerForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Make all fields optional for registration
+        # Make all fields REQUIRED for accurate ML predictions
         for field in self.fields:
-            self.fields[field].required = False
+            self.fields[field].required = True
 
 class CustomPasswordChangeForm(PasswordChangeForm):
     """Custom password change form with styled fields"""

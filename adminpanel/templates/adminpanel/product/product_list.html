@@ -280,9 +280,20 @@
     }
 
     .empty-state-icon {
-        font-size: 64px;
-        margin-bottom: 20px;
-        opacity: 0.5;
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        background: #f1f5f9;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .empty-state-icon svg {
+        width: 40px;
+        height: 40px;
+        color: #94a3b8;
     }
 
     .empty-state h3 {
@@ -452,7 +463,11 @@
 {% else %}
 <div class="product-table-container">
     <div class="empty-state">
-        <i class="fas fa-box-open" style="font-size: 64px; color: #e2e8f0; margin-bottom: 16px;"></i>
+        <div class="empty-state-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+        </div>
         <h3 style="font-size: 18px; font-weight: 600; color: #0f172a; margin-bottom: 8px;">No Products Found</h3>
         <p style="color: #64748b; font-size: 14px;">Try adjusting your search or filter criteria</p>
     </div>

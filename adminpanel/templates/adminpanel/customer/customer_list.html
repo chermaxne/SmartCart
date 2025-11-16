@@ -42,6 +42,97 @@
     .search-input {
         flex: 1;
     }
+    
+    .filter-input {
+        min-width: 180px;
+    }
+    
+    .filter-input label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #374151;
+        font-size: 13px;
+    }
+
+    .btn-filter {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-apply {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .btn-apply:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-clear {
+        padding: 12px 24px;
+        background: #f3f4f6;
+        color: #374151;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    .btn-clear:hover {
+        background: #e5e7eb;
+    }
+
+    .active-filters {
+        background: #eff6ff;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .active-filters-label {
+        font-weight: 600;
+        color: #1e40af;
+        margin-right: 10px;
+    }
+
+    .filter-tag {
+        background: white;
+        color: #1e40af;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid #bfdbfe;
+    }
+
+    .filter-tag i {
+        cursor: pointer;
+        opacity: 0.7;
+    }
+
+    .filter-tag i:hover {
+        opacity: 1;
+    }
 
     .form-control {
         width: 100%;
@@ -239,9 +330,20 @@
     }
 
     .empty-state-icon {
-        font-size: 64px;
-        margin-bottom: 20px;
-        opacity: 0.5;
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        background: #f1f5f9;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .empty-state-icon svg {
+        width: 40px;
+        height: 40px;
+        color: #94a3b8;
     }
 
     .empty-state h3 {
@@ -274,19 +376,79 @@
 
 {% block content %}
 
+<!-- Active Filters Display -->
+{% if request.GET.search or request.GET.gender or request.GET.category %}
+<div class="active-filters">
+    <span class="active-filters-label">Active Filters:</span>
+    {% if request.GET.search %}
+        <span class="filter-tag">Search: {{ request.GET.search }}</span>
+    {% endif %}
+    {% if request.GET.gender %}
+        <span class="filter-tag">Gender: {{ request.GET.gender }}</span>
+    {% endif %}
+    {% if request.GET.category %}
+        <span class="filter-tag">Category: 
+            {% for cat in all_categories %}
+                {% if cat.id|stringformat:"s" == request.GET.category %}{{ cat.name }}{% endif %}
+            {% endfor %}
+        </span>
+    {% endif %}
+    <a href="{% url 'adminpanel:customer_list' %}" class="btn-clear" style="margin-left: auto;">Clear All</a>
+</div>
+{% endif %}
+
 <div class="search-bar">
     <form method="GET" action="{% url 'adminpanel:customer_list' %}" class="search-form">
+        <!-- Search Input -->
         <div class="search-input">
-            <label for="sort" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151;">Sort By</label>
-            <select name="sort" id="sort" class="form-control" onchange="this.form.submit()">
-                <option value="">Default</option>
-                <option value="id" {% if request.GET.sort == 'id' %}selected{% endif %}>Customer ID (Ascending)</option>
-                <option value="-id" {% if request.GET.sort == '-id' %}selected{% endif %}>Customer ID (Descending)</option>
-                <option value="age" {% if request.GET.sort == 'age' %}selected{% endif %}>Age (Low to High)</option>
-                <option value="-age" {% if request.GET.sort == '-age' %}selected{% endif %}>Age (High to Low)</option>
-                <option value="monthly_income_sgd" {% if request.GET.sort == 'monthly_income_sgd' %}selected{% endif %}>Income (Low to High)</option>
-                <option value="-monthly_income_sgd" {% if request.GET.sort == '-monthly_income_sgd' %}selected{% endif %}>Income (High to Low)</option>
+            <label for="search">Search Customers</label>
+            <input type="text" name="search" id="search" class="form-control" 
+                   placeholder="Search by name, username, email..." 
+                   value="{{ request.GET.search }}">
+        </div>
+
+        <!-- Gender Filter -->
+        <div class="filter-input">
+            <label for="gender">Gender</label>
+            <select name="gender" id="gender" class="form-control">
+                <option value="">All Genders</option>
+                {% for gender in distinct_genders %}
+                    <option value="{{ gender }}" {% if request.GET.gender == gender %}selected{% endif %}>{{ gender }}</option>
+                {% endfor %}
             </select>
+        </div>
+
+        <!-- Preferred Category Filter -->
+        <div class="filter-input">
+            <label for="category">Preferred Category</label>
+            <select name="category" id="category" class="form-control">
+                <option value="">All Categories</option>
+                {% for cat in all_categories %}
+                    <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Sort By -->
+        <div class="filter-input">
+            <label for="sort">Sort By</label>
+            <select name="sort" id="sort" class="form-control">
+                <option value="">Default (Newest)</option>
+                <option value="id" {% if request.GET.sort == 'id' %}selected{% endif %}>ID ↑</option>
+                <option value="-id" {% if request.GET.sort == '-id' %}selected{% endif %}>ID ↓</option>
+                <option value="username" {% if request.GET.sort == 'username' %}selected{% endif %}>Name A-Z</option>
+                <option value="-username" {% if request.GET.sort == '-username' %}selected{% endif %}>Name Z-A</option>
+                <option value="age" {% if request.GET.sort == 'age' %}selected{% endif %}>Age ↑</option>
+                <option value="-age" {% if request.GET.sort == '-age' %}selected{% endif %}>Age ↓</option>
+                <option value="monthly_income_sgd" {% if request.GET.sort == 'monthly_income_sgd' %}selected{% endif %}>Income ↑</option>
+                <option value="-monthly_income_sgd" {% if request.GET.sort == '-monthly_income_sgd' %}selected{% endif %}>Income ↓</option>
+            </select>
+        </div>
+
+        <!-- Filter Buttons -->
+        <div class="btn-filter">
+            <a href="{% url 'adminpanel:customer_list' %}" class="btn-clear">Clear</a>
+            <button type="submit" class="btn-apply">Apply</button>
         </div>
     </form>
 </div>
@@ -360,8 +522,8 @@
 {% if page_obj.has_other_pages %}
 <div class="pagination">
     {% if page_obj.has_previous %}
-        <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}">« First</a>
-        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">‹ Previous</a>
+        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">« First</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">‹ Previous</a>
     {% else %}
         <span class="disabled">« First</span>
         <span class="disabled">‹ Previous</span>
@@ -370,8 +532,8 @@
     <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
 
     {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Next ›</a>
-        <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}">Last »</a>
+        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next ›</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last »</a>
     {% else %}
         <span class="disabled">Next ›</span>
         <span class="disabled">Last »</span>
@@ -381,7 +543,11 @@
 
 {% else %}
 <div class="empty-state">
-    <div class="empty-state-icon">👥</div>
+    <div class="empty-state-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+    </div>
     <h3>No Customers Found</h3>
     <p>{% if search_query %}Try adjusting your search query{% else %}No customers registered yet{% endif %}</p>
 </div>

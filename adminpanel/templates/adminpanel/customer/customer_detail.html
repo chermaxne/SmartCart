@@ -355,6 +355,172 @@
         background: #fee2e2;
         color: #991b1b;
     }
+
+    /* Order History Styles */
+    .orders-section {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+        margin-top: 24px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        font-size: 20px;
+    }
+
+    .stat-icon.purple {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .stat-icon.green {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+
+    .stat-icon.blue {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .orders-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .orders-table thead th {
+        background: #f8fafc;
+        padding: 14px 16px;
+        text-align: left;
+        font-weight: 600;
+        color: #475569;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .orders-table thead th:first-child {
+        border-top-left-radius: 8px;
+    }
+
+    .orders-table thead th:last-child {
+        border-top-right-radius: 8px;
+    }
+
+    .orders-table tbody tr {
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.2s ease;
+    }
+
+    .orders-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .orders-table tbody td {
+        padding: 16px;
+        color: #0f172a;
+        font-size: 14px;
+    }
+
+    .order-id {
+        font-weight: 600;
+        color: #3b82f6;
+    }
+
+    .order-date {
+        color: #64748b;
+        font-size: 13px;
+    }
+
+    .order-amount {
+        font-weight: 700;
+        color: #0f172a;
+        font-size: 16px;
+    }
+
+    .order-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .order-status.completed {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .order-status.pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .order-status i {
+        font-size: 8px;
+    }
+
+    .empty-orders {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .empty-orders i {
+        font-size: 64px;
+        color: #cbd5e1;
+        margin-bottom: 16px;
+    }
+
+    .empty-orders h3 {
+        font-size: 20px;
+        color: #64748b;
+        margin-bottom: 8px;
+    }
+
+    .empty-orders p {
+        color: #94a3b8;
+        font-size: 14px;
+    }
 </style>
 {% endblock %}
 
@@ -537,5 +703,88 @@
             </li>
         </ul>
     </div>
+</div>
+
+<!-- Order History Section -->
+<div class="orders-section">
+    <div class="section-title">
+        <i class="fas fa-shopping-cart"></i>
+        Order History
+    </div>
+
+    <!-- Order Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon purple">
+                <i class="fas fa-receipt"></i>
+            </div>
+            <div class="stat-value">{{ total_orders }}</div>
+            <div class="stat-label">Total Orders</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-value">{{ completed_orders }}</div>
+            <div class="stat-label">Completed Orders</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon blue">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-value">${{ total_spent|floatformat:2 }}</div>
+            <div class="stat-label">Total Spent</div>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    {% if orders %}
+    <table class="orders-table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Date</th>
+                <th>Items</th>
+                <th>Amount</th>
+                <th>Payment Method</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>
+                    <span class="order-id">#{{ order.id }}</span>
+                </td>
+                <td>
+                    <span class="order-date">{{ order.created_at|date:"M d, Y" }}</span><br>
+                    <small style="color: #94a3b8;">{{ order.created_at|date:"h:i A" }}</small>
+                </td>
+                <td>
+                    {{ order.items.count }} item{{ order.items.count|pluralize }}
+                </td>
+                <td>
+                    <span class="order-amount">${{ order.total_amount|floatformat:2 }}</span>
+                </td>
+                <td>
+                    <span class="badge badge-secondary">{{ order.payment_method|title }}</span>
+                </td>
+                <td>
+                    <span class="order-status {% if order.completed %}completed{% else %}pending{% endif %}">
+                        <i class="fas fa-circle"></i>
+                        {% if order.completed %}Completed{% else %}Pending{% endif %}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-orders">
+        <i class="fas fa-shopping-bag"></i>
+        <h3>No Orders Yet</h3>
+        <p>This customer hasn't placed any orders.</p>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
